@@ -17,6 +17,8 @@ $(function() {
 <!-- BEGIN: result -->
 <div class="alert alert-success">
 Tự động cập nhật giao diện thành công, dưới đây là các thông tin cần chú ý.<br />
+- Tổng số mục đã tự động cập nhật: <strong>{NUM_SECTION_AUTO}</strong><br />
+- Tổng số mục cần làm bằng tay: <strong>{NUM_SECTION_MANUAL}</strong><br />
 <em>Kết quả này đã được lưu lại trên hệ thống. Bạn có thể tra cứu lại <strong><ins><a href="#">tại đây</a></ins></strong> nếu cần thiết</em>
 </div>
 
@@ -51,6 +53,10 @@ Tự động cập nhật giao diện thành công, dưới đây là các thôn
         {GUIDE.findMessage}:
         <pre><code class="language-{SECTION.type}">{GUIDE.find}</code></pre>
         <!-- END: find -->
+        <!-- BEGIN: delinline -->
+        {GUIDE.delinlineMessage}:
+        <pre><code class="language-{SECTION.type}">{GUIDE.delinline}</code></pre>
+        <!-- END: delinline -->
         <!-- BEGIN: replace -->
         {GUIDE.replaceMessage}:
         <pre><code class="language-{SECTION.type}">{GUIDE.replace}</code></pre>
@@ -59,6 +65,10 @@ Tự động cập nhật giao diện thành công, dưới đây là các thôn
         {GUIDE.addbeforeMessage}:
         <pre><code class="language-{SECTION.type}">{GUIDE.addbefore}</code></pre>
         <!-- END: addbefore -->
+        <!-- BEGIN: addafter -->
+        {GUIDE.addafterMessage}:
+        <pre><code class="language-{SECTION.type}">{GUIDE.addafter}</code></pre>
+        <!-- END: addafter -->
         <!-- END: no_auto -->
     </div>
 </div>

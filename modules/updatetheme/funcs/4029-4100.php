@@ -48,6 +48,9 @@ $file_key = '';
 $file = '';
 $array_update_result = array();
 
+$num_section_auto = 0;
+$num_section_manual = 0;
+
 /**
  * nv_get_update_result()
  * 
@@ -72,6 +75,13 @@ function nv_get_update_result($key)
     }
 }
 
+/**
+ * nvUpdateContructItem()
+ * 
+ * @param mixed $item_key
+ * @param string $item_type
+ * @return void
+ */
 function nvUpdateContructItem($item_key, $item_type = 'php')
 {
     global $array_update_result, $file_key, $global_autokey;
@@ -85,15 +95,31 @@ function nvUpdateContructItem($item_key, $item_type = 'php')
     );
 }
 
+/**
+ * nvUpdateSetItemData()
+ * 
+ * @param mixed $item_key
+ * @param mixed $array
+ * @return void
+ */
 function nvUpdateSetItemData($item_key, $array)
 {
-    global $array_update_result, $file_key, $global_autokey;    
+    global $array_update_result, $file_key, $global_autokey, $num_section_auto;
+    $num_section_auto++;    
     $array_update_result[$item_key]['files'][$file_key]['data'][$global_autokey] = array_merge($array_update_result[$item_key]['files'][$file_key]['data'][$global_autokey], $array);
 }
 
+/**
+ * nvUpdateSetItemGuide()
+ * 
+ * @param mixed $item_key
+ * @param mixed $array
+ * @return void
+ */
 function nvUpdateSetItemGuide($item_key, $array)
 {
-    global $array_update_result, $file_key, $global_autokey;
+    global $array_update_result, $file_key, $global_autokey, $num_section_manual;
+    $num_section_manual++;
     $array_update_result[$item_key]['files'][$file_key]['data'][$global_autokey]['guide'] = array_merge($array_update_result[$item_key]['files'][$file_key]['data'][$global_autokey]['guide'], $array);
 }
 
@@ -577,15 +603,345 @@ if ($nv_Request->isset_request('submit', 'post')) {
                     ));
                 }
             } elseif (preg_match('/users\/confirm\.tpl$/', $file)) {
+                nv_get_update_result('users');
+                nvUpdateContructItem('users', 'html'); 
                 if (preg_match("/name\=\"openid\_account\_confirm\"([^\n]+)/", $output_data, $m)) {
-                    $output_data = str_replace($m[0], $m[0] . "\n					<!-- BEGIN: redirect --><input name=\"nv_redirect\" value=\"{REDIRECT}\" type=\"hidden\" /><!-- END: redirect -->", $output_data);
-                    $file_changed = true;
+                    $find = $m[0];
+                    $replace = $m[0] . "\n					<!-- BEGIN: redirect --><input name=\"nv_redirect\" value=\"{REDIRECT}\" type=\"hidden\" /><!-- END: redirect -->";
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('users', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('users', array(
+                        'find' => '<input name="openid_account_confirm" value="1" type="hidden" />',
+                        'addafter' => '<!-- BEGIN: redirect --><input name="nv_redirect" value="{REDIRECT}" type="hidden" /><!-- END: redirect -->'
+                    ));
                 }
             } elseif (preg_match('/users\/info\.tpl$/', $file)) {
+                nv_get_update_result('users');
+                nvUpdateContructItem('users', 'html'); 
                 if (preg_match("/\<\!\-\-\s*END\:\s*edit_passw([^\n]+)/", $output_data, $m)) {
-                    $output_data = str_replace($m[0], $m[0] . "\n        <!-- BEGIN: 2step --><li><a href=\"{URL_2STEP}\">{LANG.2step_status}</a></li><!-- END: 2step -->", $output_data);
-                    $file_changed = true;
+                    $find = $m[0];
+                    $replace = $m[0] . "\n        <!-- BEGIN: 2step --><li><a href=\"{URL_2STEP}\">{LANG.2step_status}</a></li><!-- END: 2step -->";
+                    $output_data = str_replace($m[0], $replace, $output_data);
+                    nvUpdateSetItemData('users', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('users', array(
+                        'find' => '<!-- BEGIN: edit_password --><li class="{PASSWORD_ACTIVE}"><a data-toggle="tab" data-location="{EDITINFO_FORM}/password" href="#edit_password">{LANG.edit_password}</a></li><!-- END: edit_password -->',
+                        'addafter' => '<!-- BEGIN: 2step --><li><a href="{URL_2STEP}">{LANG.2step_status}</a></li><!-- END: 2step -->'
+                    ));
                 }
+            } elseif (preg_match('/users\/login\_form\.tpl$/', $file)) {
+                nv_get_update_result('users');
+                nvUpdateContructItem('users', 'html');
+                
+                if (preg_match("/\<div class\=\"([^\"]+)\"\>[\s\n\t\r]*\<div class\=\"input\-group\"\>[\s\n\t\r]*\<span class\=\"input\-group\-addon\"\>\<em class\=\"([^\"]+)\"\>\<\/em\>\<\/span\>[\s\n\t\r]*\<input type\=\"text\"([^\>]+)name\=\"nv\_login\"/is", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = str_replace('"' . $m[1] . '"', '"' . $m[1] . ' loginstep1"', $m[0]);
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('users', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('users', array(
+                        'find' => '
+        <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon"><em class="fa fa-user fa-lg"></em></span>
+                <input type="text" class="required form-control" placeholder="{GLANG.username_email}" value="" name="nv_login" maxlength="100" data-pattern="/^(.){3,}$/" onkeypress="validErrorHidden(this);" data-mess="{GLANG.username_empty}">
+            </div>
+        </div>
+                        ',
+                        'replace' => '
+        <div class="form-group loginstep1">
+            <div class="input-group">
+                <span class="input-group-addon"><em class="fa fa-user fa-lg"></em></span>
+                <input type="text" class="required form-control" placeholder="{GLANG.username_email}" value="" name="nv_login" maxlength="100" data-pattern="/^(.){3,}$/" onkeypress="validErrorHidden(this);" data-mess="{GLANG.username_empty}">
+            </div>
+        </div>
+                        '
+                    ));
+                }
+                
+                nvUpdateContructItem('users', 'html');
+                
+                if (preg_match("/\<div class\=\"([^\"]+)\"\>[\s\n\t\r]*\<div class\=\"input\-group\"\>[\s\n\t\r]*\<span class\=\"input\-group\-addon\"\>\<em class\=\"([^\"]+)\"\>\<\/em\>\<\/span\>[\s\n\t\r]*\<input type\=\"password\"([^\>]+)name\=\"nv\_password\"/is", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = str_replace('"' . $m[1] . '"', '"' . $m[1] . ' loginstep1"', $m[0]);
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('users', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('users', array(
+                        'find' => '
+        <div class="form-group loginstep1">
+            <div class="input-group">
+                <span class="input-group-addon"><em class="fa fa-key fa-lg fa-fix"></em></span>
+                <input type="password" class="required form-control" placeholder="{GLANG.password}" value="" name="nv_password" maxlength="100" data-pattern="/^(.){3,}$/" onkeypress="validErrorHidden(this);" data-mess="{GLANG.password_empty}">
+            </div>
+        </div>
+                        ',
+                        'replace' => '
+        <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon"><em class="fa fa-key fa-lg fa-fix"></em></span>
+                <input type="password" class="required form-control" placeholder="{GLANG.password}" value="" name="nv_password" maxlength="100" data-pattern="/^(.){3,}$/" onkeypress="validErrorHidden(this);" data-mess="{GLANG.password_empty}">
+            </div>
+        </div>
+                        '
+                    ));
+                }
+                
+                nvUpdateContructItem('users', 'html');
+                
+                if (preg_match("/\<\!\-\-\s*BEGIN\:\s*captcha\s*\-\-\>[\s\n\t\r]*\<div class\=\"form\-group\"\>/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = '
+        <div class="form-group loginstep2 hidden">
+            <label class="margin-bottom">{GLANG.2teplogin_totppin_label}</label>
+            <div class="input-group margin-bottom">
+                <span class="input-group-addon"><em class="fa fa-key fa-lg fa-fix"></em></span>
+                <input type="text" class="required form-control" placeholder="{GLANG.2teplogin_totppin_placeholder}" value="" name="nv_totppin" maxlength="6" data-pattern="/^(.){6,}$/" onkeypress="validErrorHidden(this);" data-mess="{GLANG.2teplogin_totppin_placeholder}">
+            </div>
+            <div class="text-center">
+                <a href="#" onclick="login2step_change(this);">{GLANG.2teplogin_other_menthod}</a>
+            </div>
+        </div>
+        
+        <div class="form-group loginstep3 hidden">
+            <label class="margin-bottom">{GLANG.2teplogin_code_label}</label>
+            <div class="input-group margin-bottom">
+                <span class="input-group-addon"><em class="fa fa-key fa-lg fa-fix"></em></span>
+                <input type="text" class="required form-control" placeholder="{GLANG.2teplogin_code_placeholder}" value="" name="nv_backupcodepin" maxlength="8" data-pattern="/^(.){8,}$/" onkeypress="validErrorHidden(this);" data-mess="{GLANG.2teplogin_code_placeholder}">
+            </div>
+            <div class="text-center">
+                <a href="#" onclick="login2step_change(this);">{GLANG.2teplogin_other_menthod}</a>
+            </div>
+        </div>
+        
+        <!-- BEGIN: captcha -->
+        <div class="form-group loginCaptcha">
+                    ';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('users', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('users', array(
+                        'find' => '
+        <!-- BEGIN: captcha -->
+        <div class="form-group">
+                        ',
+                        'replace' => '
+        <!-- BEGIN: captcha -->
+        <div class="form-group loginCaptcha">
+                        ',
+                        'addbefore' => '
+        <div class="form-group loginstep2 hidden">
+            <label class="margin-bottom">{GLANG.2teplogin_totppin_label}</label>
+            <div class="input-group margin-bottom">
+                <span class="input-group-addon"><em class="fa fa-key fa-lg fa-fix"></em></span>
+                <input type="text" class="required form-control" placeholder="{GLANG.2teplogin_totppin_placeholder}" value="" name="nv_totppin" maxlength="6" data-pattern="/^(.){6,}$/" onkeypress="validErrorHidden(this);" data-mess="{GLANG.2teplogin_totppin_placeholder}">
+            </div>
+            <div class="text-center">
+                <a href="#" onclick="login2step_change(this);">{GLANG.2teplogin_other_menthod}</a>
+            </div>
+        </div>
+        
+        <div class="form-group loginstep3 hidden">
+            <label class="margin-bottom">{GLANG.2teplogin_code_label}</label>
+            <div class="input-group margin-bottom">
+                <span class="input-group-addon"><em class="fa fa-key fa-lg fa-fix"></em></span>
+                <input type="text" class="required form-control" placeholder="{GLANG.2teplogin_code_placeholder}" value="" name="nv_backupcodepin" maxlength="8" data-pattern="/^(.){8,}$/" onkeypress="validErrorHidden(this);" data-mess="{GLANG.2teplogin_code_placeholder}">
+            </div>
+            <div class="text-center">
+                <a href="#" onclick="login2step_change(this);">{GLANG.2teplogin_other_menthod}</a>
+            </div>
+        </div>
+        
+                        '
+                    ));
+                }
+            } elseif (preg_match('/users\/userinfo\.tpl$/', $file)) {
+                nv_get_update_result('users');
+                nvUpdateContructItem('users', 'html');
+            
+                if (preg_match("/\<tr\>[\s\n\t\r]*\<td\>\{LANG\.st\_login2\}\<\/td\>[\s\n\t\r]*\<td\>\{USER\.st\_login\}\<\/td\>[\s\n\t\r]*\<\/tr\>/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = $m[0] . '
+<tr>
+    <td>{LANG.2step_status}</td>
+    <td>{USER.active2step} (<a href="{URL_2STEP}">{LANG.2step_link}</a>)</td>
+</tr>
+                    ';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('users', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('users', array(
+                        'find' => '
+<tr>
+    <td>{LANG.st_login2}</td>
+    <td>{USER.st_login}</td>
+</tr>
+                        ',
+                        'addafter' => '
+<tr>
+    <td>{LANG.2step_status}</td>
+    <td>{USER.active2step} (<a href="{URL_2STEP}">{LANG.2step_link}</a>)</td>
+</tr>
+                        '
+                    ));
+                }
+            } elseif (preg_match('/users\/viewdetailusers\.tpl$/', $file)) {
+                nv_get_update_result('users');
+                nvUpdateContructItem('users', 'html');
+            
+                if (preg_match("/\<div class\=\"table\-responsive\"\>[\s\n\t\r]*\<table class\=\"table table\-bordered table\-striped\"\>/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = '
+<!-- BEGIN: for_admin -->
+<div class="m-bottom clearfix">
+    <div class="pull-right">
+        {LANG.for_admin}: 
+        <!-- BEGIN: edit --><a href="{USER.link_edit}" class="btn btn-info btn-xs"><i class="fa fa-edit"></i> {GLANG.edit}</a><!-- END: edit -->
+        <!-- BEGIN: delete --><a href="#" class="btn btn-danger btn-xs" data-toggle="admindeluser" data-userid="{USER.userid}" data-link="{USER.link_delete}" data-back="{USER.link_delete_callback}"><i class="fa fa-trash-o"></i> {GLANG.delete}</a><!-- END: delete -->
+    </div>
+</div>
+<!-- END: for_admin -->
+                    ' . $m[0];
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('users', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('users', array(
+                        'find' => '
+<div class="table-responsive">
+	<table class="table table-bordered table-striped">
+                        ',
+                        'addbefore' => '
+<!-- BEGIN: for_admin -->
+<div class="m-bottom clearfix">
+    <div class="pull-right">
+        {LANG.for_admin}: 
+        <!-- BEGIN: edit --><a href="{USER.link_edit}" class="btn btn-info btn-xs"><i class="fa fa-edit"></i> {GLANG.edit}</a><!-- END: edit -->
+        <!-- BEGIN: delete --><a href="#" class="btn btn-danger btn-xs" data-toggle="admindeluser" data-userid="{USER.userid}" data-link="{USER.link_delete}" data-back="{USER.link_delete_callback}"><i class="fa fa-trash-o"></i> {GLANG.delete}</a><!-- END: delete -->
+    </div>
+</div>
+<!-- END: for_admin -->
+                        '
+                    ));
+                }
+            } elseif (preg_match('/js\/users\.js$/', $file)) {
+                nv_get_update_result('users');
+                nvUpdateContructItem('users', 'js');
+                
+                nvUpdateSetItemGuide('users', array(
+                    'find' => 'function login_validForm(a) {',
+                    'replace' => '
+success: function(d) {
+    var b = $("[onclick*=\'change_captcha\']", a);
+    b && b.click();
+    if (d.status == "error") {
+        $("input,button", a).not("[type=submit]").prop("disabled", !1), 
+        $(".tooltip-current", a).removeClass("tooltip-current"), 
+        "" != d.input ? $(a).find("[name=\"" + d.input + "\"]").each(function() {
+            $(this).addClass("tooltip-current").attr("data-current-mess", d.mess);
+            validErrorShow(this)
+        }) : $(".nv-info", a).html(d.mess).addClass("error").show(), setTimeout(function() {
+            $("[type=submit]", a).prop("disabled", !1)
+        }, 1E3)
+    } else if (d.status == "ok") {
+        $(".nv-info", a).html(d.mess + \'<span class="load-bar"></span>\').removeClass("error").addClass("success").show(), 
+        $(".form-detail", a).hide(), $("#other_form").hide(), setTimeout(function() {
+            if( "undefined" != typeof d.redirect && "" != d.redirect){
+                 window.location.href = d.redirect;
+            }else{
+                 $(\'#sitemodal\').modal(\'hide\');
+                 window.location.href = window.location.href;
+            }
+        }, 3E3)
+    } else if (d.status == "2steprequire") {
+        $(".form-detail", a).hide(), $("#other_form").hide();
+        $(".nv-info", a).html("<a href=\"" + d.input + "\">" + d.mess + "</a>").removeClass("error").removeClass("success").addClass("info").show();
+    } else {
+        $("input,button", a).prop("disabled", !1);
+        $(\'.loginstep1, .loginstep2, .loginCaptcha\', a).toggleClass(\'hidden\');
+    }
+}
+                    ',
+                    'replaceMessage' => 'Bên trong hàm đó, trong phần thực thi sau khi login thành công success: function(d) { thay toàn bộ giá trị thành'
+                ));
+                
+                nvUpdateContructItem('users', 'js');
+                
+                nvUpdateSetItemGuide('users', array(
+                    'findMessage' => 'Mổ sung thêm hàm',
+                    'find' => '
+function login2step_change(ele) {
+    var ele = $(ele), form = ele, i = 0;
+    while (!form.is(\'form\')) {
+        if (i++ > 10) {
+            break;
+        }
+        form = form.parent();
+    }
+    if (form.is(\'form\')) {
+        $(\'.loginstep2 input,.loginstep3 input\', form).val(\'\');
+        $(\'.loginstep2,.loginstep3\', form).toggleClass(\'hidden\');
+    }
+    return false;
+}
+                    '
+                ));
+                
+                nvUpdateContructItem('users', 'js');
+                nvUpdateSetItemGuide('users', array(
+                    'findMessage' => 'Bổ sung thêm lệnh xử lý cho admin',
+                    'find' => '
+$(document).ready(function() {
+    // Delete user handler
+    $(\'[data-toggle="admindeluser"]\').click(function(e) {
+        e.preventDefault();
+        var data = $(this).data();
+        if (confirm(nv_is_del_confirm[0])) {
+            $.post(data.link, \'userid=\' + data.userid, function(res) {
+                if (res == \'OK\') {
+                    window.location.href = data.back;
+                } else {
+                    var r_split = res.split("_");
+                    if (r_split[0] == \'ERROR\') {
+                        alert(r_split[1]);
+                    } else {
+                        alert(nv_is_del_confirm[2]);
+                    }
+                }
+            });
+        }
+    });
+});
+                    '
+                ));
             }
         } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/theme\.php$/', $file)) {
             // Sửa luật rewrite theme.php
@@ -693,16 +1049,63 @@ if (empty($rewrite_keys)) {
             
             nvUpdateContructItem('news', 'php');
             
-            if (preg_match("/if\s*\(\\\$module\_config\s*\[\s*\\\$module\_name\s*\]\s*\[\s*\'showtooltip'\s*\]\s*\)\s*\{[\s\n\t\r]*\\\$xtpl\-\>assign\s*\(\s*\'TOOLTIP\_POSIT([^\}]+)\.other\.tooltip\'\s*\)\s*\;[\s\n\t\r]*\}/isU", $output_data, $m)) {
-                //print_r($m);
-                //die();
+            if (preg_match("/if\s*\(\\\$module\_config\s*\[\s*\\\$module\_name\s*\]\s*\[\s*\'showtooltip'\s*\]\s*\)\s*\{[\s\n\t\r]*\\\$xtpl\-\>assign\s*\(\s*\'TOOLTIP\_POSIT([^\}]+)main\.loopcat\.other\.tooltip\'\s*\)\s*\;[\s\n\t\r]*\}/isU", $output_data, $m)) {
+                $find = $m[0];
+                $replace = '
+
+                    $array_catpage_i[\'content\'][$index][\'hometext_clean\'] = nv_clean60(strip_tags($array_catpage_i[\'content\'][$index][\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);
+                    $xtpl->assign(\'CONTENT\', $array_catpage_i[\'content\'][$index]);
+                    
+                    if ($module_config[$module_name][\'showtooltip\']) {
+                        $xtpl->assign(\'TOOLTIP_POSITION\', $module_config[$module_name][\'tooltip_position\']);
+                        $xtpl->parse(\'main.loopcat.other.tooltip\');
+                    }                
+                ';
+                nvUpdateSetItemData('news', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('news', array(
+                    'find' => '
+if ($module_config[$module_name][\'showtooltip\']) {
+    $xtpl->assign(\'TOOLTIP_POSITION\', $module_config[$module_name][\'tooltip_position\']);
+    $array_catpage_i[\'content\'][$index][\'hometext\'] = nv_clean60($array_catpage_i[\'content\'][$index][\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);
+    $xtpl->parse(\'main.loopcat.other.tooltip\');
+}
+                    ',
+                    'delinline' => '$array_catpage_i[\'content\'][$index][\'hometext\'] = nv_clean60($array_catpage_i[\'content\'][$index][\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
+                    'addafter' => '$xtpl->assign(\'CONTENT\', $array_catpage_i[\'content\'][$index]);',
+                    'addbefore' => '
+$array_catpage_i[\'content\'][$index][\'hometext_clean\'] = nv_clean60(strip_tags($array_catpage_i[\'content\'][$index][\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);
+$xtpl->assign(\'CONTENT\', $array_catpage_i[\'content\'][$index]);
+                    '
+                ));
             }
             
+            nvUpdateContructItem('news', 'php');
             
-            nvUpdateSetItemGuide('news', array(
-                'find' => '$topic_array_i[\'hometext\'] = nv_clean60($topic_array_i[\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
-                'replace' => '$topic_array_i[\'hometext_clean\'] = nv_clean60(strip_tags($topic_array_i[\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);'
-            ));
+            if (preg_match("/BoldKeywordInStr\s*\(\s*\\$([a-zA-Z0-9\_]+)\s*\[\s*\'hometext\'\s*\]\s*\,\s*\\$([a-zA-Z0-9\_]+)\s*\)/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = 'BoldKeywordInStr(strip_tags($' . $m[1] . '[\'hometext\']), $' . $m[2] . ')';
+                nvUpdateSetItemData('news', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('news', array(
+                    'find' => '$xtpl->assign(\'CONTENT\', BoldKeywordInStr($value[\'hometext\'], $key) . "...");',
+                    'replace' => '$xtpl->assign(\'CONTENT\', BoldKeywordInStr(strip_tags($value[\'hometext\']), $key) . "...");'
+                ));
+            }
+        } elseif (preg_match('/modules\/users\/theme\.php$/', $file)) {
+            nv_get_update_result('users');
+        
+            nvUpdateContructItem('users', 'php');
         }
         
         if ($contents_file != $output_data) {
@@ -712,6 +1115,9 @@ if (empty($rewrite_keys)) {
     
     //print_r($array_update_result);
     //die();
+    
+    $xtpl->assign('NUM_SECTION_AUTO', number_format($num_section_auto, 0, ',', '.'));
+    $xtpl->assign('NUM_SECTION_MANUAL', number_format($num_section_manual, 0, ',', '.'));
     
     foreach ($array_update_result as $result) {
         $xtpl->assign('PARA_NAME', $result['title']);
@@ -741,9 +1147,13 @@ if (empty($rewrite_keys)) {
                         $guide['find'] = !empty($guide['find']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['find']))) : '';
                         $guide['replace'] = !empty($guide['replace']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['replace']))) : '';
                         $guide['addbefore'] = !empty($guide['addbefore']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['addbefore']))) : '';
+                        $guide['addafter'] = !empty($guide['addafter']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['addafter']))) : '';
+                        $guide['delinline'] = !empty($guide['delinline']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['delinline']))) : '';
                         $guide['findMessage'] = !empty($guide['findMessage']) ? $guide['findMessage'] : 'Tìm';
                         $guide['replaceMessage'] = !empty($guide['replaceMessage']) ? $guide['replaceMessage'] : 'Thay bằng';
                         $guide['addbeforeMessage'] = !empty($guide['addbeforeMessage']) ? $guide['addbeforeMessage'] : 'Thêm lên trên';
+                        $guide['addafterMessage'] = !empty($guide['addafterMessage']) ? $guide['addafterMessage'] : 'Thêm xuống dưới';
+                        $guide['delinlineMessage'] = !empty($guide['delinlineMessage']) ? $guide['delinlineMessage'] : 'Trong đoạn đó xóa';
                         
                         $xtpl->assign('GUIDE', $guide);
                         
@@ -755,6 +1165,12 @@ if (empty($rewrite_keys)) {
                         }
                         if (!empty($guide['addbefore'])) {
                             $xtpl->parse('main.result.loop.data.loop.section.no_auto.addbefore');
+                        }
+                        if (!empty($guide['delinline'])) {
+                            $xtpl->parse('main.result.loop.data.loop.section.no_auto.delinline');
+                        }
+                        if (!empty($guide['addafter'])) {
+                            $xtpl->parse('main.result.loop.data.loop.section.no_auto.addafter');
                         }
                         
                         $xtpl->parse('main.result.loop.data.loop.section.no_auto');
