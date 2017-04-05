@@ -783,10 +783,10 @@ if ($nv_Request->isset_request('submit', 'post')) {
                 if (preg_match("/\<tr\>[\s\n\t\r]*\<td\>\{LANG\.st\_login2\}\<\/td\>[\s\n\t\r]*\<td\>\{USER\.st\_login\}\<\/td\>[\s\n\t\r]*\<\/tr\>/", $output_data, $m)) {
                     $find = $m[0];
                     $replace = $m[0] . '
-<tr>
-    <td>{LANG.2step_status}</td>
-    <td>{USER.active2step} (<a href="{URL_2STEP}">{LANG.2step_link}</a>)</td>
-</tr>
+            <tr>
+                <td>{LANG.2step_status}</td>
+                <td>{USER.active2step} (<a href="{URL_2STEP}">{LANG.2step_link}</a>)</td>
+            </tr>
                     ';
                     $output_data = str_replace($find, $replace, $output_data);
                     nvUpdateSetItemData('users', array(
@@ -817,16 +817,16 @@ if ($nv_Request->isset_request('submit', 'post')) {
                 if (preg_match("/\<div class\=\"table\-responsive\"\>[\s\n\t\r]*\<table class\=\"table table\-bordered table\-striped\"\>/", $output_data, $m)) {
                     $find = $m[0];
                     $replace = '
-<!-- BEGIN: for_admin -->
-<div class="m-bottom clearfix">
-    <div class="pull-right">
-        {LANG.for_admin}: 
-        <!-- BEGIN: edit --><a href="{USER.link_edit}" class="btn btn-info btn-xs"><i class="fa fa-edit"></i> {GLANG.edit}</a><!-- END: edit -->
-        <!-- BEGIN: delete --><a href="#" class="btn btn-danger btn-xs" data-toggle="admindeluser" data-userid="{USER.userid}" data-link="{USER.link_delete}" data-back="{USER.link_delete_callback}"><i class="fa fa-trash-o"></i> {GLANG.delete}</a><!-- END: delete -->
+    <!-- BEGIN: for_admin -->
+    <div class="m-bottom clearfix">
+        <div class="pull-right">
+            {LANG.for_admin}: 
+            <!-- BEGIN: edit --><a href="{USER.link_edit}" class="btn btn-info btn-xs"><i class="fa fa-edit"></i> {GLANG.edit}</a><!-- END: edit -->
+            <!-- BEGIN: delete --><a href="#" class="btn btn-danger btn-xs" data-toggle="admindeluser" data-userid="{USER.userid}" data-link="{USER.link_delete}" data-back="{USER.link_delete_callback}"><i class="fa fa-trash-o"></i> {GLANG.delete}</a><!-- END: delete -->
+        </div>
     </div>
-</div>
-<!-- END: for_admin -->
-                    ' . $m[0];
+    <!-- END: for_admin -->
+    ' . $m[0];
                     $output_data = str_replace($find, $replace, $output_data);
                     nvUpdateSetItemData('users', array(
                         'status' => 1,
@@ -1104,20 +1104,253 @@ $xtpl->assign(\'CONTENT\', $array_catpage_i[\'content\'][$index]);
             }
         } elseif (preg_match('/modules\/users\/theme\.php$/', $file)) {
             nv_get_update_result('users');
-        
             nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/\\\$xtpl\s*\=\s*new XTemplate\s*\(\s*\'register\.tpl\'([^\n]+)[\s\n\t\r]*\\\$xtpl\-\>assign\s*\(\s*\'USER_REGISTER\'([^\n]+)/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = '$xtpl = new XTemplate(\'register.tpl\'' . $m[1];
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'find' => '$xtpl = new XTemplate(\'register.tpl\', NV_ROOTDIR . \'/themes/\' . $module_info[\'template\'] . \'/modules/\' . $module_file);',
+                    'replaceMessage' => 'Bên dưới xác định và xóa',
+                    'replace' => '$xtpl->assign(\'USER_REGISTER\', NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=\' . $module_name . \'&amp;\' . NV_OP_VARIABLE . \'=register\');'
+                ));
+            }
+            nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/if\s*\(\s*\\\$group\_id\s*\!\=\s*0\s*\)\s*\{[\s\n\t\r]*\\\$xtpl\-\>assign\s*\(\s*\'USER\_REGISTER\'([^\n]+)[\s\n\t\r]*\}/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = $m[0] . ' else {
+        $xtpl->assign(\'USER_REGISTER\', NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=\' . $module_name . \'&amp;\' . NV_OP_VARIABLE . \'=register\');
+        $xtpl->parse(\'main.agreecheck\');
+    }';
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'find' => '
+if ($group_id != 0) {
+	$xtpl->assign(\'USER_REGISTER\', NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=\' . $module_name . \'&amp;\' . NV_OP_VARIABLE . \'=register/\' . $group_id);
+}
+                    ',
+                    'addafter' => '
+ else {
+    $xtpl->assign(\'USER_REGISTER\', NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=\' . $module_name . \'&amp;\' . NV_OP_VARIABLE . \'=register\');
+    $xtpl->parse(\'main.agreecheck\');
+}
+                    '
+                ));
+            }
+            nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/\\\$xtpl\-\>parse\s*\(\s*\'main\.tab\_edit\_password\'\s*\)\s*\;[\s\n\t\r]*\}/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = $m[0] . '
+
+    if (in_array(\'2step\', $types)) {
+        $xtpl->assign(\'URL_2STEP\', nv_url_rewrite(NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=two-step-verification\', true));
+        $xtpl->parse(\'main.2step\');
+    }
+                ';
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'find' => '
+    $xtpl->parse(\'main.edit_password\');
+    $xtpl->parse(\'main.tab_edit_password\');
+}
+                    ',
+                    'addafter' => '
+
+if (in_array(\'2step\', $types)) {
+    $xtpl->assign(\'URL_2STEP\', nv_url_rewrite(NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=two-step-verification\', true));
+    $xtpl->parse(\'main.2step\');
+}
+                    '
+                ));
+            }
+            nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/\\\$xtpl\-\>assign\s*\(\s*\'URL\_GROUPS\'\,\s*nv\_url\_rewrite([^\n]+)\n/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = $m[0] . '    $xtpl->assign(\'URL_2STEP\', nv_url_rewrite(NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=two-step-verification\', true));' . "\n";
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'find' => '$xtpl->assign(\'URL_GROUPS\', nv_url_rewrite(NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=\' . $module_name . \'&amp;\' . NV_OP_VARIABLE . \'=groups\', true));',
+                    'addafter' => '$xtpl->assign(\'URL_2STEP\', nv_url_rewrite(NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=two-step-verification\', true));'
+                ));
+            }
+            nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/\\$\_user\_info\s*\[\s*\'st\_login\'\s*\]\s*\=\s*\!\s*empty\s*\(([^\n]+)\n/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = $m[0] . '    $_user_info[\'active2step\'] = ! empty($user_info[\'active2step\']) ? $lang_global[\'on\'] : $lang_global[\'off\'];' . "\n";
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'find' => '$_user_info[\'st_login\'] = ! empty($user_info[\'st_login\']) ? $lang_module[\'yes\'] : $lang_module[\'no\'];',
+                    'addafter' => '$_user_info[\'active2step\'] = ! empty($user_info[\'active2step\']) ? $lang_global[\'on\'] : $lang_global[\'off\'];'
+                ));
+            }
+            nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/function openid\_account\_confirm\s*\(\s*\\\$gfx\_chk\s*\,\s*\\\$attribs\s*\)/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = 'function openid_account_confirm($gfx_chk, $attribs, $user)';
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'find' => 'function openid_account_confirm($gfx_chk, $attribs)',
+                    'replace' => 'function openid_account_confirm($gfx_chk, $attribs, $user)'
+                ));
+            }
+            nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/\\\$xtpl\s*\=\s*new XTemplate\s*\(\s*\'confirm\.tpl\'([^\n]+)\n/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = $m[0] . '
+    $lang_module[\'openid_confirm_info\'] = sprintf($lang_module[\'openid_confirm_info\'], $attribs[\'contact/email\'], $user[\'username\']);' . "\n";
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'find' => '$xtpl = new XTemplate(\'confirm.tpl\', NV_ROOTDIR . \'/themes/\' . $module_info[\'template\'] . \'/modules/\' . $module_file);',
+                    'addafter' => '$lang_module[\'openid_confirm_info\'] = sprintf($lang_module[\'openid_confirm_info\'], $attribs[\'contact/email\'], $user[\'username\']);'
+                ));
+            }
+            nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/\\\$xtpl\-\>assign\s*\(\s*\'OPENID\_LOGIN\'(.*?)\\\$xtpl\-\>parse\s*\(\s*\'main\'\s*\);/s", $output_data, $m)) {
+                $find = $m[0];
+                $replace = '$xtpl->assign(\'OPENID_LOGIN\'' . $m[1] . 'if (!empty($nv_redirect)) {
+        $xtpl->assign(\'REDIRECT\', $nv_redirect);
+        $xtpl->parse(\'main.redirect\');
+    }' . "\n\n    \$xtpl->parse('main');";
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'findMessage' => 'Trong hàm openid_account_confirm tìm',
+                    'find' => '
+$xtpl->parse(\'main\');
+return $xtpl->text(\'main\');
+                    ',
+                    'addbefore' => '
+if (!empty($nv_redirect)) {
+    $xtpl->assign(\'REDIRECT\', $nv_redirect);
+    $xtpl->parse(\'main.redirect\');
+}
+                    '
+                ));
+            }
+            nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/\\\$xtpl\s*\=\s*new XTemplate\s*\(\s*\'viewdetailusers\.tpl\'([^\n]+)[\s\n\t\r]*\\\$xtpl\-\>assign\s*\(\s*\'LANG\'\s*\,\s*\\\$lang\_module\s*\)\s*\;/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = $m[0] . "\n    \$xtpl->assign('GLANG', \$lang_global);";
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'findMessage' => 'Tìm hàm nv_memberslist_detail_theme, xác định trong hàm dòng',
+                    'find' => '$xtpl->assign(\'LANG\', $lang_module);',
+                    'addafter' => '$xtpl->assign(\'GLANG\', $lang_global);'
+                ));
+            }
+            nvUpdateContructItem('users', 'php');
+            
+            if (preg_match("/\\\$xtpl\-\>assign\s*\(\s*\'USER\'\s*\,\s*\\\$item\s*\)\s*\;/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = $m[0] . "\n" . '
+    if ($item[\'is_admin\']) {
+        if ($item[\'allow_edit\']) {
+            $xtpl->assign(\'LINK_EDIT\', $item[\'link_edit\']);
+            $xtpl->parse(\'main.for_admin.edit\');
+        }
+        if ($item[\'allow_delete\']) {
+            $xtpl->parse(\'main.for_admin.delete\');
+        }
+        $xtpl->parse(\'main.for_admin\');
+    }';
+                nvUpdateSetItemData('users', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+                $output_data = str_replace($find, $replace, $output_data);
+            } else {
+                nvUpdateSetItemGuide('users', array(
+                    'find' => '$xtpl->assign(\'USER\', $item);',
+                    'addafter' => '
+
+if ($item[\'is_admin\']) {
+    if ($item[\'allow_edit\']) {
+        $xtpl->assign(\'LINK_EDIT\', $item[\'link_edit\']);
+        $xtpl->parse(\'main.for_admin.edit\');
+    }
+    if ($item[\'allow_delete\']) {
+        $xtpl->parse(\'main.for_admin.delete\');
+    }
+    $xtpl->parse(\'main.for_admin\');
+}
+                    '
+                ));
+            }
         }
         
         if ($contents_file != $output_data) {
-            //die($output_data);
+            file_put_contents($file, $output_data, LOCK_EX);
         }
     }
     
-    //print_r($array_update_result);
-    //die();
+    $storage_file = NV_UPLOADS_DIR . '/' . $module_upload . '/' . $op . '.htm';
     
     $xtpl->assign('NUM_SECTION_AUTO', number_format($num_section_auto, 0, ',', '.'));
     $xtpl->assign('NUM_SECTION_MANUAL', number_format($num_section_manual, 0, ',', '.'));
+    $xtpl->assign('FILE_STORAGE', NV_BASE_SITEURL . $storage_file);
     
     foreach ($array_update_result as $result) {
         $xtpl->assign('PARA_NAME', $result['title']);
@@ -1189,6 +1422,20 @@ $xtpl->assign(\'CONTENT\', $array_catpage_i[\'content\'][$index]);
     }
     
     $xtpl->parse('main.result');
+    
+    if (file_exists(NV_ROOTDIR . '/' . $storage_file)) {
+        nv_deletefile(NV_ROOTDIR . '/' . $storage_file);
+    }
+    
+    $xtpl1 = new XTemplate('save.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
+    $xtpl1->assign('NV_BASE_SITEURL', NV_BASE_SITEURL);
+    $xtpl1->assign('NV_ASSETS_DIR', NV_ASSETS_DIR);
+    $xtpl1->assign('CONTENTS', $xtpl->text('main.result'));
+    
+    $xtpl1->parse('main');
+    $file_text = $xtpl1->text('main');
+    
+    file_put_contents(NV_ROOTDIR . '/' . $storage_file, $file_text, LOCK_EX);
 } else {
     $xtpl->parse('main.form');
 }

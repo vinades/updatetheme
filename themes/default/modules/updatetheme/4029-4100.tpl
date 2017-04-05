@@ -19,7 +19,7 @@ $(function() {
 Tự động cập nhật giao diện thành công, dưới đây là các thông tin cần chú ý.<br />
 - Tổng số mục đã tự động cập nhật: <strong>{NUM_SECTION_AUTO}</strong><br />
 - Tổng số mục cần làm bằng tay: <strong>{NUM_SECTION_MANUAL}</strong><br />
-<em>Kết quả này đã được lưu lại trên hệ thống. Bạn có thể tra cứu lại <strong><ins><a href="#">tại đây</a></ins></strong> nếu cần thiết</em>
+<em>Kết quả này đã được lưu lại trên hệ thống. Bạn có thể tra cứu lại <strong><ins><a href="{FILE_STORAGE}" target="_blank">tại đây</a></ins></strong> nếu cần thiết</em>
 </div>
 
 <!-- BEGIN: loop -->
