@@ -13,12 +13,12 @@ if (!defined('NV_MAINFILE'))
 
 $module_version = array(
     'name' => 'Update Theme',
-    'modfuncs' => 'main,4029-4100',
-    'submenu' => 'main,4029-4100',
+    'modfuncs' => 'main,4029-4100,4029-4102',
+    'submenu' => 'main,4029-4100,4029-4102',
     'is_sysmod' => 0,
     'virtual' => 0,
-    'version' => '4.1.00',
-    'date' => 'Mon, 20 Mar 2017 02:02:22 GMT',
+    'version' => '4.1.02',
+    'date' => 'Wed, 03 May 2017 02:22:28 GMT',
     'author' => 'VINADES (contact@vinades.vn)',
     'uploads_dir' => array($module_name),
     'note' => ''
