@@ -48,3 +48,75 @@ function list_all_file($dir = '', $base_dir = '')
 
     return $file_list;
 }
+
+/**
+ * nv_get_update_result()
+ * 
+ * @param mixed $key
+ * @return void
+ */
+function nv_get_update_result($key)
+{
+    global $array_update_result, $theme_update, $file_key, $file;
+    
+    if (!isset($array_update_result[$key])) {
+        $array_update_result[$key] = array();
+    }
+    if (!isset($array_update_result[$key]['files'])) {
+        $array_update_result[$key]['files'] = array();
+    }
+    if (!isset($array_update_result[$key]['files'][$file_key])) {
+        $array_update_result[$key]['files'][$file_key] = array(
+            'name' => str_replace(NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update . '/', '', $file),
+            'data' => array()
+        );
+    }
+}
+
+/**
+ * nvUpdateContructItem()
+ * 
+ * @param mixed $item_key
+ * @param string $item_type
+ * @return void
+ */
+function nvUpdateContructItem($item_key, $item_type = 'php')
+{
+    global $array_update_result, $file_key, $global_autokey;
+    $global_autokey++;
+    $array_update_result[$item_key]['files'][$file_key]['data'][$global_autokey] = array(
+        'find' => '',
+        'replace' => '',
+        'status' => 0,
+        'guide' => array(),
+        'type' => $item_type
+    );
+}
+
+/**
+ * nvUpdateSetItemData()
+ * 
+ * @param mixed $item_key
+ * @param mixed $array
+ * @return void
+ */
+function nvUpdateSetItemData($item_key, $array)
+{
+    global $array_update_result, $file_key, $global_autokey, $num_section_auto;
+    $num_section_auto++;    
+    $array_update_result[$item_key]['files'][$file_key]['data'][$global_autokey] = array_merge($array_update_result[$item_key]['files'][$file_key]['data'][$global_autokey], $array);
+}
+
+/**
+ * nvUpdateSetItemGuide()
+ * 
+ * @param mixed $item_key
+ * @param mixed $array
+ * @return void
+ */
+function nvUpdateSetItemGuide($item_key, $array)
+{
+    global $array_update_result, $file_key, $global_autokey, $num_section_manual;
+    $num_section_manual++;
+    $array_update_result[$item_key]['files'][$file_key]['data'][$global_autokey]['guide'] = array_merge($array_update_result[$item_key]['files'][$file_key]['data'][$global_autokey]['guide'], $array);
+}
