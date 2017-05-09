@@ -14,7 +14,7 @@ if (!defined('NV_IS_MOD_UPDATETHEME'))
 if (preg_match('/contact\/form\.tpl$/', $file)) {
     nv_get_update_result('contact');
     nvUpdateContructItem('contact', 'html');
-    
+
     if (preg_match("/\<input([^\>]+)value[\s]*\=[\s]*(\"|')\{CONTENT\.fphone\}([^\n]+)[\s\n\t\r]*\<\/div\>[\s\n\t\r]*\<\/div\>/", $output_data, $m)) {
         $find = $m[0];
         $replace = $m[0] . "\n" . '        <div class="form-group">
@@ -46,9 +46,9 @@ if (preg_match('/contact\/form\.tpl$/', $file)) {
         </div>'
         ));
     }
-    
+
     nvUpdateContructItem('contact', 'html');
-    
+
     if (preg_match("/\<input([^\>]+)name[\s]*\=(\"|')sendcopy(\"|')([^\n]+)[\s\n\t\r]*\<\/div\>/", $output_data, $m)) {
         $find = $m[0];
         $replace = $m[0] . "\n" . '        <!-- BEGIN: captcha -->';
@@ -65,9 +65,9 @@ if (preg_match('/contact\/form\.tpl$/', $file)) {
             'addafter' => '        <!-- BEGIN: captcha -->'
         ));
     }
-    
+
     nvUpdateContructItem('contact', 'html');
-    
+
     if (preg_match("/\<input([^\>]+)name[\s]*\=(\"|')fcode(\"|')([^\n]+)[\s\n\t\r]*\<\/div\>[\s\n\t\r]*\<\/div\>/", $output_data, $m)) {
         $find = $m[0];
         $replace = $m[0] . "\n" . '        <!-- END: captcha -->
@@ -109,6 +109,50 @@ if (preg_match('/contact\/form\.tpl$/', $file)) {
             </div>
         </div>
         <!-- END: recaptcha -->'
+        ));
+    }
+} elseif (preg_match('/\/contact\.js$/', $file)) {
+    nv_get_update_result('contact');
+    nvUpdateContructItem('contact', 'js');
+
+    if (preg_match("/\}[\s]*\,[\s]*1E3[\s]*\)[\s]*\)[\s]*\:[\s]*\([\s]*\\$\([\s]*(\"|')input[\s]*\,[\s]*select[\s]*\,[\s]*button[\s]*\,[\s]*textarea[\s]*(\"|')[\s]*\,[\s]*a[\s]*\)\.prop/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '}, 1E3), (nv_is_recaptcha && change_captcha())) : ($("input,select,button,textarea", a).prop';
+        $output_data = str_replace($find, $replace, $output_data);
+        nvUpdateSetItemData('contact', array(
+            'find' => $find,
+            'replace' => $replace,
+            'status' => 1
+        ));
+    } else {
+        nvUpdateSetItemGuide('contact', array(
+            'find' => '            }, 1E3)) : ($("input,select,button,textarea", a).prop("disabled", !0), "error" == b.status ? $(a).next().html(b.mess).removeClass("alert-info").addClass("alert-danger").show() : $(a).next().html(b.mess).removeClass("alert-danger").addClass("alert-info").show(), $("[data-mess]").tooltip("destroy"), setTimeout(function() {',
+            'replace' => '            }, 1E3), (nv_is_recaptcha && change_captcha())) : ($("input,select,button,textarea", a).prop("disabled", !0), "error" == b.status ? $(a).next().html(b.mess).removeClass("alert-info").addClass("alert-danger").show() : $(a).next().html(b.mess).removeClass("alert-danger").addClass("alert-info").show(), $("[data-mess]").tooltip("destroy"), setTimeout(function() {'
+        ));
+    }
+
+    nvUpdateContructItem('contact', 'js');
+    
+    if (preg_match("/nv\_validReset[\s]*\([\s]*([a-z0-9A-Z\_]+)[\s]*\)[\s\n\t\r]*\}[\s]*\,[\s]*5E3[\s]*\)[\s]*\)/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = 'nv_validReset(a);
+                (nv_is_recaptcha && change_captcha());
+            }, 5E3))';
+        $output_data = str_replace($find, $replace, $output_data);
+        nvUpdateSetItemData('contact', array(
+            'find' => $find,
+            'replace' => $replace,
+            'status' => 1
+        ));
+    } else {
+        nvUpdateSetItemGuide('contact', array(
+            'find' => '                $("input,select,button,textarea", a).not(".disabled").prop("disabled", !1);
+                nv_validReset(a)
+            }, 5E3))',
+            'replace' => '                $("input,select,button,textarea", a).not(".disabled").prop("disabled", !1);
+                nv_validReset(a);
+                (nv_is_recaptcha && change_captcha());
+            }, 5E3))'
         ));
     }
 }

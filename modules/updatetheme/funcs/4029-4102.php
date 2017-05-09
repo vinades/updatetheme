@@ -175,11 +175,170 @@ if ($nv_Request->isset_request('submit', 'post')) {
             ));
             
             $output_data .= "\n\n" . $replace;
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/js\/main\.js$/', $file)) {
+            nv_get_update_result('base');
+            nvUpdateContructItem('base', 'js');
+            
+            if (preg_match("/brcb[\s]*\=[\s]*\\$\((\"|')\.breadcrumbs\-wrap(\"|')[\s]*\)[\s]*\;/", $output_data, $m)) {
+                $find = $m[0];
+                $replace = 'brcb = $(\'.breadcrumbs-wrap\'),
+    reCapIDs = [];';
+                $output_data = str_replace($find, $replace, $output_data);
+                
+                nvUpdateSetItemData('base', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+            } else {
+                nvUpdateSetItemGuide('base', array(
+                    'find' => 'brcb = $(\'.breadcrumbs-wrap\');',
+                    'replace' => 'brcb = $(\'.breadcrumbs-wrap\'),
+    reCapIDs = [];'
+                ));
+            }
+            
+            // Nếu tồn tại các hàm sau thì cần làm bằng tay
+            if (preg_match("/function (tipShow|ftipShow|change\_captcha|modalShowByObj)/", $output_data, $m)) {
+                nv_get_update_result('base');
+                nvUpdateContructItem('base', 'js');
+                nvUpdateSetItemGuide('base', array(
+                    'find' => 'Các hàm tipShow, ftipShow, change_captcha, modalShowByObj',
+                    'replace' => 'Cập nhật theo hướng dẫn ở https://github.com/nukeviet/update#js-của-giao-diện-chính'
+                ));
+            }
+            
+            nv_get_update_result('base');
+            nvUpdateContructItem('base', 'js');
+            
+            $replace = 'var reCaptchaLoadCallback = function() {
+    for (i = 0, j = nv_recaptcha_elements.length; i < j; i++) {
+        var ele = nv_recaptcha_elements[i];
+        if ($(\'#\' + ele.id).length && typeof reCapIDs[i] == "undefined") {
+            var size = \'\';
+            if (typeof ele.btn != "undefined" && ele.btn != "") {
+                ele.btn.prop(\'disabled\', true);
+            }
+            if (typeof ele.size != "undefined" && ele.size == "compact") {
+                size = \'compact\';
+            }
+            reCapIDs.push([
+                i, grecaptcha.render(ele.id, {
+                    \'sitekey\': nv_recaptcha_sitekey,
+                    \'type\': nv_recaptcha_type,
+                    \'size\': size,
+                    \'callback\': reCaptchaResCallback
+                })
+            ]);
+        }
+    }
+}
+
+var reCaptchaResCallback = function() {
+    for (i = 0, j = reCapIDs.length; i < j; i++) {
+        var ele = reCapIDs[i];
+        var btn = nv_recaptcha_elements[ele[0]];
+        if ($(\'#\' + btn.id).length) {
+            var res = grecaptcha.getResponse(ele[1]);
+            if (res != "") {
+                if (typeof btn.btn != "undefined" && btn.btn != "") {
+                    btn.btn.prop(\'disabled\', false);
+                }
+            }
+        }
+    }
+}';
+            
+            nvUpdateSetItemData('base', array(
+                'status' => 1,
+                'find' => '/* Dòng cuối của file */',
+                'replace' => $replace
+            ));
+            
+            $output_data .= "\n\n\n" . $replace;
+            
+            // Thành phần nếu tồn tại thì phải làm thủ công
+            if (preg_match("/\\$\([\s]*(\"|')\[data\-toggle\=tip\][\s]*\,[\s]*\[data\-toggle\=ftip\](\"|')[\s]*\)\.click/", $output_data, $m)) {
+                nv_get_update_result('base');
+                nvUpdateContructItem('base', 'js');
+                nvUpdateSetItemGuide('base', array(
+                    'find' => '    $("[data-toggle=tip], [data-toggle=ftip]").click(function() {
+        var a = $(this).attr("data-target"),
+            d = $(a).html(),
+            b = $(this).attr("data-toggle"),
+            c = "tip" == b ? $("#tip").attr("data-content") : $("#ftip").attr("data-content");
+        a != c ? ("" != c && $(\'[data-target="\' + c + \'"]\').attr("data-click", "y"), "tip" == b ? ($("#tip .bg").html(d), tipShow(this, a)) : ($("#ftip .bg").html(d), ftipShow(this, a))) : "n" == $(this).attr("data-click") ? "tip" == b ? tipHide() : ftipHide() : "tip" == b ? tipShow(this, a) : ftipShow(this, a);
+        return !1
+    });',
+                    'addbeforeMessage' => 'Trong đó xác định',
+                    'addbefore' => '        a != c ? ("" != c && $(\'[data-target="\' + c + \'"]\').attr("data-click", "y"), "tip" == b ? ($("#tip .bg").html(d), tipShow(this, a)) : ($("#ftip .bg").html(d), ftipShow(this, a))) : "n" == $(this).attr("data-click") ? "tip" == b ? tipHide() : ftipHide() : "tip" == b ? tipShow(this, a) : ftipShow(this, a);',
+                    'addafterMessage' => 'Thay bằng',
+                    'addafter' => '        var callback = $(this).data("callback");
+        a != c ? ("" != c && $(\'[data-target="\' + c + \'"]\').attr("data-click", "y"), "tip" == b ? ($("#tip .bg").html(d), tipShow(this, a, callback)) : ($("#ftip .bg").html(d), ftipShow(this, a, callback))) : "n" == $(this).attr("data-click") ? "tip" == b ? tipHide() : ftipHide() : "tip" == b ? tipShow(this, a, callback) : ftipShow(this, a, callback);'
+                ));
+            }
+            
+            // Các thành phần dưới đây không bắt buộc
+            if (preg_match("/script\.src[\s]*\=[\s]*(\"|')https\:\/\/maps\.googleapis\.com([^\n]+)initializeMap(\"|')[\s]*\;/", $output_data, $m)) {
+                nv_get_update_result('base');
+                nvUpdateContructItem('base', 'js');
+                
+                $find = $m[0];
+                $replace = 'script.src = \'https://maps.googleapis.com/maps/api/js?\' + ($(this).data(\'apikey\') != \'\' ? \'key=\' + $(this).data(\'apikey\') + \'&\' : \'\') + \'callback=initializeMap\';';
+                $output_data = str_replace($find, $replace, $output_data);
+                
+                nvUpdateSetItemData('base', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+            }
+
+            if (preg_match("/https\:\/\/apis\.google\.com\/js\/plusone\.js/", $output_data, $m)) {
+                nv_get_update_result('base');
+                nvUpdateContructItem('base', 'js');
+                
+                $find = $m[0];
+                $replace = '//apis.google.com/js/plusone.js';
+                $output_data = str_replace($find, $replace, $output_data);
+                
+                nvUpdateSetItemData('base', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+            }
+            
+            if (preg_match("/http\:\/\/platform\.twitter\.com\/widgets\.js/", $output_data, $m)) {
+                nv_get_update_result('base');
+                nvUpdateContructItem('base', 'js');
+                
+                $find = $m[0];
+                $replace = '//platform.twitter.com/widgets.js';
+                $output_data = str_replace($find, $replace, $output_data);
+                
+                nvUpdateSetItemData('base', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
+                ));
+            }
         }
         
         if ($contents_file != $output_data) {
             //file_put_contents($file, $output_data, LOCK_EX);
         }
+    }
+    
+    $file = NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update . '/js/main.js';
+    $file_key = md5(strtolower($file));
+    if (!is_file($file)) {
+        nv_get_update_result('base');
+        nvUpdateContructItem('base', 'js');
+        nvUpdateSetItemGuide('base', array(
+            'find' => 'Tìm file js chính của giao diện',
+            'replace' => 'Cập nhật theo hướng dẫn ở https://github.com/nukeviet/update#js-của-giao-diện-chính'
+        ));
     }
     
     $storage_file = NV_UPLOADS_DIR . '/' . $module_upload . '/' . $op . '.htm';
