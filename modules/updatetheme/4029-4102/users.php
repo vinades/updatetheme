@@ -299,13 +299,13 @@ success: function(d) {
     }
 }
                     ',
-                    'replaceMessage' => 'Bên trong hàm ðó, trong ph?n th?c thi sau khi login thành công success: function(d) { thay toàn b? giá tr? thành'
+                    'replaceMessage' => 'BÃªn trong hÃ m Ä‘Ã³, trong ph?n th?c thi sau khi login thÃ nh cÃ´ng success: function(d) { thay toÃ n b? giÃ¡ tr? thÃ nh'
                 ));
                 
                 nvUpdateContructItem('users', 'js');
                 
                 nvUpdateSetItemGuide('users', array(
-                    'findMessage' => 'M? sung thêm hàm',
+                    'findMessage' => 'M? sung thÃªm hÃ m',
                     'find' => '
 function login2step_change(ele) {
     var ele = $(ele), form = ele, i = 0;
@@ -326,7 +326,7 @@ function login2step_change(ele) {
                 
                 nvUpdateContructItem('users', 'js');
                 nvUpdateSetItemGuide('users', array(
-                    'findMessage' => 'B? sung thêm l?nh x? l? cho admin',
+                    'findMessage' => 'B? sung thÃªm l?nh x? l? cho admin',
                     'find' => '
 $(document).ready(function() {
     // Delete user handler
@@ -367,7 +367,7 @@ $(document).ready(function() {
             } else {
                 nvUpdateSetItemGuide('users', array(
                     'find' => '$xtpl = new XTemplate(\'register.tpl\', NV_ROOTDIR . \'/themes/\' . $module_info[\'template\'] . \'/modules/\' . $module_file);',
-                    'replaceMessage' => 'Bên dý?i xác ð?nh và xóa',
+                    'replaceMessage' => 'BÃªn dÆ°?i xÃ¡c Ä‘?nh vÃ  xÃ³a',
                     'replace' => '$xtpl->assign(\'USER_REGISTER\', NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=\' . $module_name . \'&amp;\' . NV_OP_VARIABLE . \'=register\');'
                 ));
             }
@@ -518,7 +518,7 @@ if (in_array(\'2step\', $types)) {
                 $output_data = str_replace($find, $replace, $output_data);
             } else {
                 nvUpdateSetItemGuide('users', array(
-                    'findMessage' => 'Trong hàm openid_account_confirm t?m',
+                    'findMessage' => 'Trong hÃ m openid_account_confirm t?m',
                     'find' => '
 $xtpl->parse(\'main\');
 return $xtpl->text(\'main\');
@@ -544,7 +544,7 @@ if (!empty($nv_redirect)) {
                 $output_data = str_replace($find, $replace, $output_data);
             } else {
                 nvUpdateSetItemGuide('users', array(
-                    'findMessage' => 'T?m hàm nv_memberslist_detail_theme, xác ð?nh trong hàm d?ng',
+                    'findMessage' => 'T?m hÃ m nv_memberslist_detail_theme, xÃ¡c Ä‘?nh trong hÃ m d?ng',
                     'find' => '$xtpl->assign(\'LANG\', $lang_module);',
                     'addafter' => '$xtpl->assign(\'GLANG\', $lang_global);'
                 ));

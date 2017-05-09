@@ -84,7 +84,7 @@ if ($nv_Request->isset_request('submit', 'post')) {
     $array_update_result['news'] = array('title' => 'Cập nhật giao diện module news', 'note' => '', 'files' => array());
     $array_update_result['seek'] = array('title' => 'Cập nhật giao diện module seek', 'note' => '', 'files' => array());
     $array_update_result['users'] = array('title' => 'Cập nhật giao diện module users', 'note' => '', 'files' => array());
-    $array_update_result['voting'] = array('title' => 'Cập nhật giao diện module voting', 'note' => 'Nếu giao diện của bạn tồn tại themes/ten-theme/js/voting.js cần đối chiếu với themes/default/js/voting.js để chỉnh sửa phù hợp với chức năng mới (thêm captcha)', 'files' => array());
+    $array_update_result['voting'] = array('title' => 'Cập nhật giao diện module voting', 'note' => '', 'files' => array());
     
     foreach ($files as $file) {
         $contents_file = file_get_contents($file);
