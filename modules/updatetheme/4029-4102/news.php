@@ -26,7 +26,7 @@ if (!function_exists('addLinkTargetForNewFeature')) {
         if (!empty($m[1])) {
             foreach ($m[1] as $k => $v) {
                 nv_get_update_result($mod);
-                nvUpdateContructItem('news', 'html');
+                nvUpdateContructItem($mod, 'html');
                 
                 $find = $m[0][$k];
                 $replace = '<a' . $m[1][$k] . 'href="{' . $m[2][$k] . '.' . $m[3][$k] . '}" {' . $m[2][$k] . '.target_blank}' . $m[4][$k] . '>';
@@ -530,54 +530,54 @@ if (preg_match('/news\/block\_groups\.tpl$/', $file)) {
     
     $output_data = addLinkTargetForNewFeature($output_data, 'news');
 } elseif (preg_match('/modules\/news\/theme\.php$/', $file)) {
-            nv_get_update_result('news');
-            
-            if (preg_match_all("/\\$([a-zA-Z0-9\_]+)\s*\[\s*\'hometext\'\\s*]\s*\=\s*nv\_clean60\(\s*\\$([a-zA-Z0-9\_]+)\s*\[\s*\'hometext\'\s*\]/", $output_data, $m)) {
-                foreach ($m[1] as $k => $v) {
-                    $find = $m[0][$k];
-                    $replace = '$' . $m[1][$k] . '[\'hometext_clean\'] = nv_clean60(strip_tags($' . $m[2][$k] . '[\'hometext\'])';
-                    $output_data = str_replace($find, $replace, $output_data);
-                    nvUpdateContructItem('news', 'php');
-                    nvUpdateSetItemData('news', array(
-                        'status' => 1,
-                        'find' => $find,
-                        'replace' => $replace
-                    ));
-                }
-            } else {
-                nvUpdateContructItem('news', 'php');
-                nvUpdateSetItemGuide('news', array(
-                    'findMessage' => 'T?m các đo?n có d?ng (kho?ng 2)',
-                    'find' => '$array_row_i[\'hometext\'] = nv_clean60($array_row_i[\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
-                    'replace' => '$array_row_i[\'hometext_clean\'] = nv_clean60(strip_tags($array_row_i[\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);'
-                ));
-                nvUpdateContructItem('news', 'php');
-                nvUpdateSetItemGuide('news', array(
-                    'find' => '$array_content_i[\'hometext\'] = nv_clean60($array_content_i[\'hometext\'], 200);',
-                    'replace' => '$array_content_i[\'hometext\'] = nv_clean60(strip_tags($array_content_i[\'hometext\']), 200);'
-                ));
-                nvUpdateContructItem('news', 'php');
-                nvUpdateSetItemGuide('news', array(
-                    'find' => '$related_new_array_i[\'hometext\'] = nv_clean60($related_new_array_i[\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
-                    'replace' => '$related_new_array_i[\'hometext_clean\'] = nv_clean60(strip_tags($related_new_array_i[\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);'
-                ));
-                nvUpdateContructItem('news', 'php');
-                nvUpdateSetItemGuide('news', array(
-                    'find' => '$related_array_i[\'hometext\'] = nv_clean60($related_array_i[\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
-                    'replace' => '$related_array_i[\'hometext_clean\'] = nv_clean60(strip_tags($related_array_i[\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);'
-                ));
-                nvUpdateContructItem('news', 'php');
-                nvUpdateSetItemGuide('news', array(
-                    'find' => '$topic_array_i[\'hometext\'] = nv_clean60($topic_array_i[\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
-                    'replace' => '$topic_array_i[\'hometext_clean\'] = nv_clean60(strip_tags($topic_array_i[\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);'
-                ));
-            }
-            
+    nv_get_update_result('news');
+    
+    if (preg_match_all("/\\$([a-zA-Z0-9\_]+)\s*\[\s*\'hometext\'\\s*]\s*\=\s*nv\_clean60\(\s*\\$([a-zA-Z0-9\_]+)\s*\[\s*\'hometext\'\s*\]/", $output_data, $m)) {
+        foreach ($m[1] as $k => $v) {
+            $find = $m[0][$k];
+            $replace = '$' . $m[1][$k] . '[\'hometext_clean\'] = nv_clean60(strip_tags($' . $m[2][$k] . '[\'hometext\'])';
+            $output_data = str_replace($find, $replace, $output_data);
             nvUpdateContructItem('news', 'php');
+            nvUpdateSetItemData('news', array(
+                'status' => 1,
+                'find' => $find,
+                'replace' => $replace
+            ));
+        }
+    } else {
+        nvUpdateContructItem('news', 'php');
+        nvUpdateSetItemGuide('news', array(
+            'findMessage' => 'Tìm các đoạn có dạng (khoảng 2)',
+            'find' => '$array_row_i[\'hometext\'] = nv_clean60($array_row_i[\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
+            'replace' => '$array_row_i[\'hometext_clean\'] = nv_clean60(strip_tags($array_row_i[\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);'
+        ));
+        nvUpdateContructItem('news', 'php');
+        nvUpdateSetItemGuide('news', array(
+            'find' => '$array_content_i[\'hometext\'] = nv_clean60($array_content_i[\'hometext\'], 200);',
+            'replace' => '$array_content_i[\'hometext\'] = nv_clean60(strip_tags($array_content_i[\'hometext\']), 200);'
+        ));
+        nvUpdateContructItem('news', 'php');
+        nvUpdateSetItemGuide('news', array(
+            'find' => '$related_new_array_i[\'hometext\'] = nv_clean60($related_new_array_i[\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
+            'replace' => '$related_new_array_i[\'hometext_clean\'] = nv_clean60(strip_tags($related_new_array_i[\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);'
+        ));
+        nvUpdateContructItem('news', 'php');
+        nvUpdateSetItemGuide('news', array(
+            'find' => '$related_array_i[\'hometext\'] = nv_clean60($related_array_i[\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
+            'replace' => '$related_array_i[\'hometext_clean\'] = nv_clean60(strip_tags($related_array_i[\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);'
+        ));
+        nvUpdateContructItem('news', 'php');
+        nvUpdateSetItemGuide('news', array(
+            'find' => '$topic_array_i[\'hometext\'] = nv_clean60($topic_array_i[\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
+            'replace' => '$topic_array_i[\'hometext_clean\'] = nv_clean60(strip_tags($topic_array_i[\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);'
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
             
-            if (preg_match("/if\s*\(\\\$module\_config\s*\[\s*\\\$module\_name\s*\]\s*\[\s*\'showtooltip'\s*\]\s*\)\s*\{[\s\n\t\r]*\\\$xtpl\-\>assign\s*\(\s*\'TOOLTIP\_POSIT([^\}]+)main\.loopcat\.other\.tooltip\'\s*\)\s*\;[\s\n\t\r]*\}/isU", $output_data, $m)) {
-                $find = $m[0];
-                $replace = '
+    if (preg_match("/if\s*\(\\\$module\_config\s*\[\s*\\\$module\_name\s*\]\s*\[\s*\'showtooltip'\s*\]\s*\)\s*\{[\s\n\t\r]*\\\$xtpl\-\>assign\s*\(\s*\'TOOLTIP\_POSIT([^\}]+)main\.loopcat\.other\.tooltip\'\s*\)\s*\;[\s\n\t\r]*\}/isU", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '
 
                     $array_catpage_i[\'content\'][$index][\'hometext_clean\'] = nv_clean60(strip_tags($array_catpage_i[\'content\'][$index][\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);
                     $xtpl->assign(\'CONTENT\', $array_catpage_i[\'content\'][$index]);
@@ -587,45 +587,422 @@ if (preg_match('/news\/block\_groups\.tpl$/', $file)) {
                         $xtpl->parse(\'main.loopcat.other.tooltip\');
                     }                
                 ';
-                nvUpdateSetItemData('news', array(
-                    'status' => 1,
-                    'find' => $find,
-                    'replace' => $replace
-                ));
-                $output_data = str_replace($find, $replace, $output_data);
-            } else {
-                nvUpdateSetItemGuide('news', array(
-                    'find' => '
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '
 if ($module_config[$module_name][\'showtooltip\']) {
     $xtpl->assign(\'TOOLTIP_POSITION\', $module_config[$module_name][\'tooltip_position\']);
     $array_catpage_i[\'content\'][$index][\'hometext\'] = nv_clean60($array_catpage_i[\'content\'][$index][\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);
     $xtpl->parse(\'main.loopcat.other.tooltip\');
 }
                     ',
-                    'delinline' => '$array_catpage_i[\'content\'][$index][\'hometext\'] = nv_clean60($array_catpage_i[\'content\'][$index][\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
-                    'addafter' => '$xtpl->assign(\'CONTENT\', $array_catpage_i[\'content\'][$index]);',
-                    'addbefore' => '
+            'delinline' => '$array_catpage_i[\'content\'][$index][\'hometext\'] = nv_clean60($array_catpage_i[\'content\'][$index][\'hometext\'], $module_config[$module_name][\'tooltip_length\'], true);',
+            'addafter' => '$xtpl->assign(\'CONTENT\', $array_catpage_i[\'content\'][$index]);',
+            'addbefore' => '
 $array_catpage_i[\'content\'][$index][\'hometext_clean\'] = nv_clean60(strip_tags($array_catpage_i[\'content\'][$index][\'hometext\']), $module_config[$module_name][\'tooltip_length\'], true);
 $xtpl->assign(\'CONTENT\', $array_catpage_i[\'content\'][$index]);
                     '
-                ));
-            }
-            
-            nvUpdateContructItem('news', 'php');
-            
-            if (preg_match("/BoldKeywordInStr\s*\(\s*\\$([a-zA-Z0-9\_]+)\s*\[\s*\'hometext\'\s*\]\s*\,\s*\\$([a-zA-Z0-9\_]+)\s*\)/", $output_data, $m)) {
-                $find = $m[0];
-                $replace = 'BoldKeywordInStr(strip_tags($' . $m[1] . '[\'hometext\']), $' . $m[2] . ')';
-                nvUpdateSetItemData('news', array(
-                    'status' => 1,
-                    'find' => $find,
-                    'replace' => $replace
-                ));
-                $output_data = str_replace($find, $replace, $output_data);
-            } else {
-                nvUpdateSetItemGuide('news', array(
-                    'find' => '$xtpl->assign(\'CONTENT\', BoldKeywordInStr($value[\'hometext\'], $key) . "...");',
-                    'replace' => '$xtpl->assign(\'CONTENT\', BoldKeywordInStr(strip_tags($value[\'hometext\']), $key) . "...");'
-                ));
-            }
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/BoldKeywordInStr\s*\(\s*\\$([a-zA-Z0-9\_]+)\s*\[\s*\'hometext\'\s*\]\s*\,\s*\\$([a-zA-Z0-9\_]+)\s*\)/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = 'BoldKeywordInStr(strip_tags($' . $m[1] . '[\'hometext\']), $' . $m[2] . ')';
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '$xtpl->assign(\'CONTENT\', BoldKeywordInStr($value[\'hometext\'], $key) . "...");',
+            'replace' => '$xtpl->assign(\'CONTENT\', BoldKeywordInStr(strip_tags($value[\'hometext\']), $key) . "...");'
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$xtpl\-\>clear\_autoreset[\s]*\([\s]*\)[\s]*\;[\s\n\t\r]*if[\s]*\([\s]*\\\$module\_config[\s]*\[[\s]*\\\$module\_name[\s]*\]/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = "\n" . '        if ($array_row_i[\'external_link\']) {
+            $array_row_i[\'target_blank\'] = \'target="_blank"\';
         }
+        
+        ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '        $xtpl->clear_autoreset();
+        if ($module_config[$module_name][\'showtooltip\']) {',
+            'addbefore' => '        if ($array_row_i[\'external_link\']) {
+            $array_row_i[\'target_blank\'] = \'target="_blank"\';
+        }
+        '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$xtpl\-\>clear\_autoreset[\s]*\([\s]*\)[\s]*\;[\s\n\t\r]*\\\$xtpl\-\>assign[\s]*\([\s]*(\"|')NUMBER/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = "\n" . '        if ($array_row_i[\'external_link\']) {
+            $array_row_i[\'target_blank\'] = \'target="_blank"\';
+        }
+        
+        ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '
+        $xtpl->clear_autoreset();
+        $xtpl->assign(\'NUMBER\', ++$a);',
+            'addbefore' => '        
+        if ($array_row_i[\'external_link\']) {
+            $array_row_i[\'target_blank\'] = \'target="_blank"\';
+        }'
+        ));
+    }
+    
+    if (preg_match_all("/\\\$xtpl\-\>assign[\s]*\([\s]*(\"|')CONTENT(\"|')[\s]*\,[\s]*\\\$array\_row\_i[\s]*\)[\s]*\;[\s\n\t\r]*if[\s]*\([\s]*defined[\s]*\([\s]*(\"|')NV\_IS\_MODADMIN(\"|')[\s]*\)[\s]*\)[\s]*\{/", $output_data, $m)) {
+        foreach ($m[1] as $k => $v) {
+            $find = $m[0][$k];
+            $replace = '            
+            if ($array_row_i[\'external_link\']) {
+                $array_row_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            ' . $m[0][$k];
+            $output_data = str_replace($find, $replace, $output_data);
+            nvUpdateContructItem('news', 'php');
+            nvUpdateSetItemData('news', array(
+                'status' => 1,
+                'find' => $find,
+                'replace' => $replace
+            ));
+        }
+    } else {
+        nvUpdateContructItem('news', 'php');
+        nvUpdateSetItemGuide('news', array(
+            'findMessage' => 'Tìm các đoạn có dạng (khoảng 2)',
+            'find' => '            $xtpl->assign(\'CONTENT\', $array_row_i);
+            
+            if (defined(\'NV_IS_MODADMIN\')) {',
+            'addbefore' => '            
+            if ($array_row_i[\'external_link\']) {
+                $array_row_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$xtpl\-\>assign[\s]*\([\s]*(\"|')RELATED(\"|')[\s]*\,[\s]*\\\$array\_row\_i[\s]*\)[\s]*\;/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '            
+            if ($array_row_i[\'external_link\']) {
+                $array_row_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '            $xtpl->assign(\'RELATED\', $array_row_i);',
+            'addbefore' => '            
+            if ($array_row_i[\'external_link\']) {
+                $array_row_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$xtpl\-\>assign[\s]*\([\s]*(\"|')CONTENT(\"|')[\s]*\,[\s]*\\\$array\_catcontent\_i[\s]*\)[\s]*\;/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '            
+            if ($array_catcontent_i[\'external_link\']) {
+                $array_catcontent_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '            $xtpl->assign(\'CONTENT\', $array_catcontent_i);',
+            'addbefore' => '            
+            if ($array_catcontent_i[\'external_link\']) {
+                $array_catcontent_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$xtpl\-\>assign[\s]*\([\s]*(\"|')NEWSTOP(\"|')[\s]*\,[\s]*\\\$array\_content\_i[\s]*\)[\s]*\;/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '          
+            if ($array_content_i[\'external_link\']) {
+                $array_content_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            
+            ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '            $xtpl->assign(\'NEWSTOP\', $array_content_i);',
+            'addbefore' => '          
+            if ($array_content_i[\'external_link\']) {
+                $array_content_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            
+            '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$xtpl\-\>assign[\s]*\([\s]*(\"|')CONTENT(\"|')[\s]*\,[\s]*\\\$array\_content\_i[\s]*\)[\s]*\;/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '          
+            if ($array_content_i[\'external_link\']) {
+                $array_content_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            
+            ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '            $xtpl->assign(\'CONTENT\', $array_content_i);',
+            'addbefore' => '          
+            if ($array_content_i[\'external_link\']) {
+                $array_content_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            
+            '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$newday[\s]*\=[\s]*\\\$related\_new\_array\_i[\s]*\[[\s]*(\"|')time(\"|')[\s]*\]/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '                if ($related_new_array_i[\'external_link\']) {
+                    $related_new_array_i[\'target_blank\'] = \'target="_blank"\';
+                }
+                
+                ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '                $newday = $related_new_array_i[\'time\'] + (86400 * $related_new_array_i[\'newday\']);',
+            'addbefore' => '                if ($related_new_array_i[\'external_link\']) {
+                    $related_new_array_i[\'target_blank\'] = \'target="_blank"\';
+                }
+                '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$newday[\s]*\=[\s]*\\\$related\_array\_i[\s]*\[[\s]*(\"|')time(\"|')[\s]*\][\s]*\+[\s]*\([\s]*86400/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '                if ($related_array_i[\'external_link\']) {
+                    $related_array_i[\'target_blank\'] = \'target="_blank"\';
+                }
+                
+                ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '                $newday = $related_array_i[\'time\'] + (86400 * $related_array_i[\'newday\']);',
+            'addbefore' => '                if ($related_array_i[\'external_link\']) {
+                    $related_array_i[\'target_blank\'] = \'target="_blank"\';
+                }
+                '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$newday[\s]*\=[\s]*\\\$topic\_array\_i[\s]*\[[\s]*(\"|')time(\"|')[\s]*\][\s]*\+[\s]*\([\s]*86400/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '                if ($topic_array_i[\'external_link\']) {
+                    $topic_array_i[\'target_blank\'] = \'target="_blank"\';
+                }
+                
+                ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '                $newday = $topic_array_i[\'time\'] + (86400 * $topic_array_i[\'newday\']);',
+            'addbefore' => '                if ($topic_array_i[\'external_link\']) {
+                    $topic_array_i[\'target_blank\'] = \'target="_blank"\';
+                }
+                '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/\\\$xtpl\-\>assign[\s]*\([\s]*(\"|')TOPIC\_OTHER(\"|')[\s]*\,[\s]*\\\$topic\_other\_array\_i[\s]*\)[\s]*\;/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '
+            if ($topic_other_array_i[\'external_link\']) {
+                $topic_other_array_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            
+            ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '            $xtpl->assign(\'TOPIC_OTHER\', $topic_other_array_i);',
+            'addbefore' => '            if ($topic_other_array_i[\'external_link\']) {
+                $topic_other_array_i[\'target_blank\'] = \'target="_blank"\';
+            }
+            '
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/if[\s]*\([\s]*\\\$global\_config[\s]*\[[\s]*(\"|')gfx\_chk(\"|')[\s]*\][\s]*\>[\s]*0[\s]*\)[\s]*\{[\s\n\t\r]*(.*)\}[\s\n\t\r]*\\\$xtpl\-\>parse[\s]*\([\s]*(\"|')main\.content(\"|')[\s]*\)[\s]*\;/s", $output_data, $m)) {
+        $find = $m[0];
+        $replace = 'if ($global_config[\'gfx_chk\'] > 0) {
+        if ($global_config[\'captcha_type\'] == 2) {
+            $xtpl->assign(\'RECAPTCHA_ELEMENT\', \'recaptcha\' . nv_genpass(8));
+            $xtpl->assign(\'N_CAPTCHA\', $lang_global[\'securitycode1\']);
+            $xtpl->parse(\'main.content.recaptcha\');
+        } else {
+            $xtpl->assign(\'GFX_NUM\', NV_GFX_NUM);
+            $xtpl->assign(\'CAPTCHA_REFRESH\', $lang_global[\'captcharefresh\']);
+            $xtpl->assign(\'CAPTCHA_REFR_SRC\', NV_BASE_SITEURL . NV_ASSETS_DIR . \'/images/refresh.png\');
+            $xtpl->assign(\'N_CAPTCHA\', $lang_global[\'securitycode\']);
+            $xtpl->assign(\'GFX_WIDTH\', NV_GFX_WIDTH);
+            $xtpl->assign(\'GFX_HEIGHT\', NV_GFX_HEIGHT);
+            $xtpl->parse(\'main.content.captcha\');
+        }
+    }
+
+    $xtpl->parse(\'main.content\');';
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '    if ($global_config[\'gfx_chk\'] > 0) {
+        $xtpl->assign(\'CAPTCHA_REFRESH\', $lang_global[\'captcharefresh\']);
+        $xtpl->assign(\'CAPTCHA_REFR_SRC\', NV_BASE_SITEURL . NV_ASSETS_DIR . \'/images/refresh.png\');
+        $xtpl->assign(\'N_CAPTCHA\', $lang_global[\'securitycode\']);
+        $xtpl->assign(\'GFX_WIDTH\', NV_GFX_WIDTH);
+        $xtpl->assign(\'GFX_HEIGHT\', NV_GFX_HEIGHT);
+        $xtpl->parse(\'main.content.captcha\');
+    }',
+            'replace' => '    if ($global_config[\'gfx_chk\'] > 0) {
+        if ($global_config[\'captcha_type\'] == 2) {
+            $xtpl->assign(\'RECAPTCHA_ELEMENT\', \'recaptcha\' . nv_genpass(8));
+            $xtpl->assign(\'N_CAPTCHA\', $lang_global[\'securitycode1\']);
+            $xtpl->parse(\'main.content.recaptcha\');
+        } else {
+            $xtpl->assign(\'GFX_NUM\', NV_GFX_NUM);
+            $xtpl->assign(\'CAPTCHA_REFRESH\', $lang_global[\'captcharefresh\']);
+            $xtpl->assign(\'CAPTCHA_REFR_SRC\', NV_BASE_SITEURL . NV_ASSETS_DIR . \'/images/refresh.png\');
+            $xtpl->assign(\'N_CAPTCHA\', $lang_global[\'securitycode\']);
+            $xtpl->assign(\'GFX_WIDTH\', NV_GFX_WIDTH);
+            $xtpl->assign(\'GFX_HEIGHT\', NV_GFX_HEIGHT);
+            $xtpl->parse(\'main.content.captcha\');
+        }
+    }'
+        ));
+    }
+    
+    nvUpdateContructItem('news', 'php');
+    
+    if (preg_match("/if[\s]*\([\s]*\![\s]*empty[\s]*\([\s]*\\\$value[\s]*\[[\s]*(\"|')homeimgfile(\"|')[\s]*\][\s]*\)[\s]*\)[\s]*\{/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '
+            if ($value[\'external_link\']) {
+                $xtpl->assign(\'TARGET_BLANK\', \'target="blank"\');
+            }
+            
+            ' . $m[0];
+        nvUpdateSetItemData('news', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+        $output_data = str_replace($find, $replace, $output_data);
+    } else {
+        nvUpdateSetItemGuide('news', array(
+            'find' => '            if (! empty($value[\'homeimgfile\'])) {
+                $xtpl->assign(\'IMG_SRC\', $value[\'homeimgfile\']);',
+            'addbefore' => '            if ($value[\'external_link\']) {
+                $xtpl->assign(\'TARGET_BLANK\', \'target="blank"\');
+            }
+            '
+        ));
+    }
+    
+    $output_data = replaceModuleFileInTheme($output_data, 'news');
+}
