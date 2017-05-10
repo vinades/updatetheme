@@ -48,4 +48,7 @@ if (preg_match('/seek\/form\.tpl$/', $file)) {
             'replace' => '        	<link rel="stylesheet" href="//www.google.com/cse/style/look/default.css" type="text/css" />'
         ));
     }
+} elseif (preg_match('/seek\/theme\.php$/', $file)) {
+    nv_get_update_result('seek');
+    $output_data = replaceModuleFileInTheme($output_data, 'seek');
 }
