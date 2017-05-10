@@ -368,4 +368,7 @@ function nv_sendvoting_captcha(btn, id, msg) {
         'replace' => $output_data,
         'status' => 1
     ));
+} elseif (preg_match('/voting\/theme\.php$/', $file)) {
+    nv_get_update_result('voting');
+    $output_data = replaceModuleFileInTheme($output_data, 'voting');
 }
