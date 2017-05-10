@@ -155,4 +155,75 @@ if (preg_match('/contact\/form\.tpl$/', $file)) {
             }, 5E3))'
         ));
     }
+} elseif (preg_match('/contact\/theme\.php$/', $file)) {
+    nv_get_update_result('contact');
+    nvUpdateContructItem('contact', 'php');
+    
+    if (!preg_match("/function[\s]+contact\_form\_theme[\s]*\(([^\n]+)[\s\n\t\r]+\{[\s\n\t\r]+global[\s]+([^\;]+)\;/", $output_data, $m)) {
+        $find = $m[0];
+        $replace = str_replace($m[2], $m[2] . ', $global_config', $m[0]);
+        $output_data = str_replace($find, $replace, $output_data);
+        nvUpdateSetItemData('contact', array(
+            'find' => $find,
+            'replace' => $replace,
+            'status' => 1
+        ));
+    } else {
+        nvUpdateSetItemGuide('contact', array(
+            'find' => 'function contact_form_theme($array_content, $catsName, $base_url, $checkss)
+{
+    global $module_file, $lang_global, $lang_module, $module_info;',
+            'replace' => 'function contact_form_theme($array_content, $catsName, $base_url, $checkss)
+{
+    global $lang_global, $lang_module, $module_info, $global_config;'
+        ));
+    }
+    
+    nvUpdateContructItem('contact', 'php');
+    
+    if (preg_match("/\\\$xtpl\-\>assign[\s]*\([\s]*(\"|')GFX\_WIDTH(\"|')(.*)\,[\s]*NV\_GFX\_NUM[\s]*\)[\s]*\;/s", $output_data, $m)) {
+        $find = $m[0];
+        $replace = '
+    if ($global_config[\'captcha_type\'] == 2) {
+        $xtpl->assign(\'RECAPTCHA_ELEMENT\', \'recaptcha\' . nv_genpass(8));
+        $xtpl->assign(\'N_CAPTCHA\', $lang_global[\'securitycode1\']);
+        $xtpl->parse(\'main.recaptcha\');
+    } else {
+        $xtpl->assign(\'GFX_WIDTH\', NV_GFX_WIDTH);
+        $xtpl->assign(\'GFX_HEIGHT\', NV_GFX_HEIGHT);
+        $xtpl->assign(\'NV_BASE_SITEURL\', NV_BASE_SITEURL);
+        $xtpl->assign(\'CAPTCHA_REFRESH\', $lang_global[\'captcharefresh\']);
+        $xtpl->assign(\'NV_GFX_NUM\', NV_GFX_NUM);
+        $xtpl->parse(\'main.captcha\');
+    }';
+        $output_data = str_replace($find, $replace, $output_data);
+        nvUpdateSetItemData('contact', array(
+            'find' => $find,
+            'replace' => $replace,
+            'status' => 1
+        ));
+    } else {
+        nvUpdateSetItemGuide('contact', array(
+            'find' => '    $xtpl->assign(\'GFX_WIDTH\', NV_GFX_WIDTH);
+    $xtpl->assign(\'GFX_HEIGHT\', NV_GFX_HEIGHT);
+    $xtpl->assign(\'NV_BASE_SITEURL\', NV_BASE_SITEURL);
+    $xtpl->assign(\'CAPTCHA_REFRESH\', $lang_global[\'captcharefresh\']);
+    $xtpl->assign(\'NV_GFX_NUM\', NV_GFX_NUM);',
+            'replace' => '    
+    if ($global_config[\'captcha_type\'] == 2) {
+        $xtpl->assign(\'RECAPTCHA_ELEMENT\', \'recaptcha\' . nv_genpass(8));
+        $xtpl->assign(\'N_CAPTCHA\', $lang_global[\'securitycode1\']);
+        $xtpl->parse(\'main.recaptcha\');
+    } else {
+        $xtpl->assign(\'GFX_WIDTH\', NV_GFX_WIDTH);
+        $xtpl->assign(\'GFX_HEIGHT\', NV_GFX_HEIGHT);
+        $xtpl->assign(\'NV_BASE_SITEURL\', NV_BASE_SITEURL);
+        $xtpl->assign(\'CAPTCHA_REFRESH\', $lang_global[\'captcharefresh\']);
+        $xtpl->assign(\'NV_GFX_NUM\', NV_GFX_NUM);
+        $xtpl->parse(\'main.captcha\');
+    }'
+        ));
+    }
+    
+    $output_data = replaceModuleFileInTheme($output_data, 'contact');
 }
