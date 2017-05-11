@@ -159,7 +159,7 @@ if (preg_match('/contact\/form\.tpl$/', $file)) {
     nv_get_update_result('contact');
     nvUpdateContructItem('contact', 'php');
     
-    if (!preg_match("/function[\s]+contact\_form\_theme[\s]*\(([^\n]+)[\s\n\t\r]+\{[\s\n\t\r]+global[\s]+([^\;]+)\;/", $output_data, $m)) {
+    if (preg_match("/function[\s]+contact\_form\_theme[\s]*\(([^\n]+)[\s\n\t\r]+\{[\s\n\t\r]+global[\s]+([^\;]+)\;/", $output_data, $m)) {
         $find = $m[0];
         $replace = str_replace($m[2], $m[2] . ', $global_config', $m[0]);
         $output_data = str_replace($find, $replace, $output_data);
