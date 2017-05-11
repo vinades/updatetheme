@@ -11,6 +11,36 @@
 if (!defined('NV_IS_MOD_UPDATETHEME'))
     die('Stop!!!');
 
+/**
+ * replaceModuleFileInTheme()
+ * 
+ * @param mixed $output_data
+ * @param mixed $mod
+ * @return
+ */
+function replaceModuleFileInTheme($output_data, $mod)
+{
+    preg_match_all("/\\\$module\_info[\s]*\[[\s]*(\"|')template(\"|')[\s]*\][\s]*\.[\s]*(\"|')\/(modules|images)\/(\"|')[\s]*\.[\s]*\\\$module\_file/", $output_data, $m);
+    
+    if (!empty($m[1])) {
+        foreach ($m[1] as $k => $v) {
+            nv_get_update_result($mod);
+            nvUpdateContructItem($mod, 'php');
+            
+            $find = $m[0][$k];
+            $replace = '$module_info[' . $m[1][$k] . 'template' . $m[2][$k] . '] . ' . $m[3][$k] . '/' . $m[4][$k] . '/' . $m[5][$k] . ' . $module_info[\'module_theme\']';
+            $output_data = str_replace($find, $replace, $output_data);
+            nvUpdateSetItemData($mod, array(
+                'status' => 1,
+                'find' => $find,
+                'replace' => $replace
+            ));
+        }
+    }
+    
+    return $output_data;
+}
+
 $page_title = $module_info['custom_title'];
 $key_words = $module_info['keywords'];
 
@@ -198,14 +228,518 @@ if ($nv_Request->isset_request('submit', 'post')) {
                 ));
             }
             
-            // Nếu tồn tại các hàm sau thì cần làm bằng tay
-            if (preg_match("/function (tipShow|ftipShow|change\_captcha|modalShowByObj)/", $output_data, $m)) {
+            // Thay thế hàm tipShow nếu có
+            if (preg_match("/function[\s]+tipShow[\s]*\(/", $output_data, $m)) {
                 nv_get_update_result('base');
                 nvUpdateContructItem('base', 'js');
-                nvUpdateSetItemGuide('base', array(
-                    'find' => 'Các hàm tipShow, ftipShow, change_captcha, modalShowByObj',
-                    'replace' => 'Cập nhật theo hướng dẫn ở https://github.com/nukeviet/update#js-của-giao-diện-chính'
+                
+                if (preg_match("/function[\s]+tipShow[\s]*\([\s]*([a-z0-9]+)[\s]*\,[\s]*([a-z0-9]+)[\s]*\)[\s]*\{/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = 'function tipShow(a, b, callback) {';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('base', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('base', array(
+                        'find' => 'function tipShow(a, b) {',
+                        'replace' => 'function tipShow(a, b, callback) {'
+                    ));
+                }
+                
+                nvUpdateContructItem('base', 'js');
+                
+                if (preg_match("/\\$\([\s]*(\"|')#tip(\"|')[\s]*\)\.attr[\s]*\([\s]*(\"|')data\-content(\"|')[\s]*\,[\s]+b[\s]*\)\.show[\s]*\([\s]*(\"|')fast(\"|')[\s]*\)[\s]*\;[\s\n\t\r]+tip\_active[\s]+\=[\s]+\![\s]*0/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = 'if (typeof callback != "undefined") {
+        $("#tip").attr("data-content", b).show("fast", function() {
+            if (callback == "recaptchareset" && typeof nv_is_recaptcha != "undefined" && nv_is_recaptcha) {
+                $(\'[data-toggle="recaptcha"]\', $(this)).each(function() {
+                    var parent = $(this).parent();
+                    var oldID = $(this).attr(\'id\');
+                    var id = "recaptcha" + (new Date().getTime()) + nv_randomPassword(8);
+                    var ele;
+                    var btn = false, pnum = 0, btnselector = \'\';
+                    
+                    $(this).remove();
+                    parent.append(\'<div id="\' + id + \'" data-toggle="recaptcha"></div>\');
+                    
+                    for (i = 0, j = nv_recaptcha_elements.length; i < j; i++) {
+                        ele = nv_recaptcha_elements[i];
+                        if (typeof ele.pnum != "undefined" && typeof ele.btnselector != "undefined" && ele.pnum && ele.btnselector != "" && ele.id == oldID) {
+                            pnum = ele.pnum;
+                            btnselector = ele.btnselector;
+                            btn = $(\'#\' + id);
+                            for (k = 1; k <= ele.pnum; k ++) {
+                                btn = btn.parent();
+                            }
+                            btn = $(ele.btnselector, btn);
+                            break;
+                        }
+                    }
+                    var newEle = {};
+                    newEle.id = id;
+                    if (btn != false) {
+                        newEle.btn = btn;
+                        newEle.pnum = pnum;
+                        newEle.btnselector = btnselector;
+                    }
+                    nv_recaptcha_elements.push(newEle);
+                });
+                reCaptchaLoadCallback();
+            }
+        });
+    } else {
+        $("#tip").attr("data-content", b).show("fast");
+    }
+    tip_active = 1;';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('base', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('base', array(
+                        'find' => '// Hàm tipShow',
+                        'replaceMessage' => 'Trong hàm đó tìm',
+                        'replace' => '    $("#tip").attr("data-content", b).show("fast");
+    tip_active = !0',
+                        'addafterMessage' => 'Thay lại thành',
+                        'addafter' => '    if (typeof callback != "undefined") {
+        $("#tip").attr("data-content", b).show("fast", function() {
+            if (callback == "recaptchareset" && typeof nv_is_recaptcha != "undefined" && nv_is_recaptcha) {
+                $(\'[data-toggle="recaptcha"]\', $(this)).each(function() {
+                    var parent = $(this).parent();
+                    var oldID = $(this).attr(\'id\');
+                    var id = "recaptcha" + (new Date().getTime()) + nv_randomPassword(8);
+                    var ele;
+                    var btn = false, pnum = 0, btnselector = \'\';
+                    
+                    $(this).remove();
+                    parent.append(\'<div id="\' + id + \'" data-toggle="recaptcha"></div>\');
+                    
+                    for (i = 0, j = nv_recaptcha_elements.length; i < j; i++) {
+                        ele = nv_recaptcha_elements[i];
+                        if (typeof ele.pnum != "undefined" && typeof ele.btnselector != "undefined" && ele.pnum && ele.btnselector != "" && ele.id == oldID) {
+                            pnum = ele.pnum;
+                            btnselector = ele.btnselector;
+                            btn = $(\'#\' + id);
+                            for (k = 1; k <= ele.pnum; k ++) {
+                                btn = btn.parent();
+                            }
+                            btn = $(ele.btnselector, btn);
+                            break;
+                        }
+                    }
+                    var newEle = {};
+                    newEle.id = id;
+                    if (btn != false) {
+                        newEle.btn = btn;
+                        newEle.pnum = pnum;
+                        newEle.btnselector = btnselector;
+                    }
+                    nv_recaptcha_elements.push(newEle);
+                });
+                reCaptchaLoadCallback();
+            }
+        });
+    } else {
+        $("#tip").attr("data-content", b).show("fast");
+    }
+    tip_active = 1;'
+                    ));
+                }
+            }
+            
+            // Thay thế hàm ftipShow nếu có
+            if (preg_match("/function[\s]+ftipShow[\s]*\(/", $output_data, $m)) {
+                nv_get_update_result('base');
+                nvUpdateContructItem('base', 'js');
+                
+                if (preg_match("/function[\s]+ftipShow[\s]*\([\s]*([a-z0-9]+)[\s]*\,[\s]*([a-z0-9]+)[\s]*\)[\s]*\{/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = 'function ftipShow(a, b, callback) {';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('base', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('base', array(
+                        'find' => 'function ftipShow(a, b) {',
+                        'replace' => 'function ftipShow(a, b, callback) {'
+                    ));
+                }
+                
+                nvUpdateContructItem('base', 'js');
+                
+                if (preg_match("/\\$\([\s]*(\"|')#ftip(\"|')[\s]*\)\.attr[\s]*\([\s]*(\"|')data\-content(\"|')[\s]*\,[\s]+b[\s]*\)\.show[\s]*\([\s]*(\"|')fast(\"|')[\s]*\)[\s]*\;[\s\n\t\r]+ftip\_active[\s]+\=[\s]+\![\s]*0/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = 'if (typeof callback != "undefined") {
+        $("#ftip").attr("data-content", b).show("fast", function() {
+            if (callback == "recaptchareset" && typeof nv_is_recaptcha != "undefined" && nv_is_recaptcha) {
+                $(\'[data-toggle="recaptcha"]\', $(this)).each(function() {
+                    var parent = $(this).parent();
+                    var oldID = $(this).attr(\'id\');
+                    var id = "recaptcha" + (new Date().getTime()) + nv_randomPassword(8);
+                    var ele;
+                    var btn = false, pnum = 0, btnselector = \'\';
+                    
+                    $(this).remove();
+                    parent.append(\'<div id="\' + id + \'" data-toggle="recaptcha"></div>\');
+                    
+                    for (i = 0, j = nv_recaptcha_elements.length; i < j; i++) {
+                        ele = nv_recaptcha_elements[i];
+                        if (typeof ele.pnum != "undefined" && typeof ele.btnselector != "undefined" && ele.pnum && ele.btnselector != "" && ele.id == oldID) {
+                            pnum = ele.pnum;
+                            btnselector = ele.btnselector;
+                            btn = $(\'#\' + id);
+                            for (k = 1; k <= ele.pnum; k ++) {
+                                btn = btn.parent();
+                            }
+                            btn = $(ele.btnselector, btn);
+                            break;
+                        }
+                    }
+                    var newEle = {};
+                    newEle.id = id;
+                    if (btn != false) {
+                        newEle.btn = btn;
+                        newEle.pnum = pnum;
+                        newEle.btnselector = btnselector;
+                    }
+                    nv_recaptcha_elements.push(newEle);
+                });
+                reCaptchaLoadCallback();
+            }
+        });
+    } else {
+        $("#ftip").attr("data-content", b).show("fast");
+    }
+    ftip_active = 1;';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('base', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('base', array(
+                        'find' => '// Hàm ftipShow',
+                        'replaceMessage' => 'Trong hàm đó tìm',
+                        'replace' => '    $("#ftip").attr("data-content", b).show("fast");
+    ftip_active = !0',
+                        'addafterMessage' => 'Thay lại thành',
+                        'addafter' => '    if (typeof callback != "undefined") {
+        $("#ftip").attr("data-content", b).show("fast", function() {
+            if (callback == "recaptchareset" && typeof nv_is_recaptcha != "undefined" && nv_is_recaptcha) {
+                $(\'[data-toggle="recaptcha"]\', $(this)).each(function() {
+                    var parent = $(this).parent();
+                    var oldID = $(this).attr(\'id\');
+                    var id = "recaptcha" + (new Date().getTime()) + nv_randomPassword(8);
+                    var ele;
+                    var btn = false, pnum = 0, btnselector = \'\';
+                    
+                    $(this).remove();
+                    parent.append(\'<div id="\' + id + \'" data-toggle="recaptcha"></div>\');
+                    
+                    for (i = 0, j = nv_recaptcha_elements.length; i < j; i++) {
+                        ele = nv_recaptcha_elements[i];
+                        if (typeof ele.pnum != "undefined" && typeof ele.btnselector != "undefined" && ele.pnum && ele.btnselector != "" && ele.id == oldID) {
+                            pnum = ele.pnum;
+                            btnselector = ele.btnselector;
+                            btn = $(\'#\' + id);
+                            for (k = 1; k <= ele.pnum; k ++) {
+                                btn = btn.parent();
+                            }
+                            btn = $(ele.btnselector, btn);
+                            break;
+                        }
+                    }
+                    var newEle = {};
+                    newEle.id = id;
+                    if (btn != false) {
+                        newEle.btn = btn;
+                        newEle.pnum = pnum;
+                        newEle.btnselector = btnselector;
+                    }
+                    nv_recaptcha_elements.push(newEle);
+                });
+                reCaptchaLoadCallback();
+            }
+        });
+    } else {
+        $("#ftip").attr("data-content", b).show("fast");
+    }
+    ftip_active = 1;'
+                    ));
+                }
+            }
+            
+            nvUpdateContructItem('base', 'js');
+            
+            // change_captcha là hàm bắt buộc phải có trong giao diện
+            if (preg_match("/function[\s]+change\_captcha[\s]*\([\s]*a[\s]*\)[\s]+\{(.*)\\$\(a\)\.val\(\"\"\)\;[\s\n\t\r]+return[\s]*\![\s]*1[\s\n\t\r]+\}/s", $output_data, $m)) {
+                $find = $m[0];
+                $replace = 'function change_captcha(a) {
+    if (typeof nv_is_recaptcha != "undefined" && nv_is_recaptcha) {
+        for (i = 0, j = reCapIDs.length; i < j; i++) {
+            var ele = reCapIDs[i];
+            var btn = nv_recaptcha_elements[ele[0]];
+            if ($(\'#\' + btn.id).length) {
+                if (typeof btn.btn != "undefined" && btn.btn != "") {
+                    btn.btn.prop(\'disabled\', true);
+                }
+                grecaptcha.reset(ele[1]);
+            }
+        }
+        reCaptchaLoadCallback();
+    } else {
+        $("img.captchaImg").attr("src", nv_base_siteurl + "index.php?scaptcha=captcha&nocache=" + nv_randomPassword(10));
+        "undefined" != typeof a && "" != a && $(a).val("");
+    }
+    return !1
+}';
+                $output_data = str_replace($find, $replace, $output_data);
+                nvUpdateSetItemData('base', array(
+                    'status' => 1,
+                    'find' => $find,
+                    'replace' => $replace
                 ));
+            } else {
+                nvUpdateSetItemGuide('base', array(
+                    'find' => 'function change_captcha(a) {
+    $("img.captchaImg").attr("src", nv_base_siteurl + "index.php?scaptcha=captcha&nocache=" + nv_randomPassword(10));
+    "undefined" != typeof a && "" != a && $(a).val("");
+    return !1
+}',
+                    'replace' => 'function change_captcha(a) {
+    if (typeof nv_is_recaptcha != "undefined" && nv_is_recaptcha) {
+        for (i = 0, j = reCapIDs.length; i < j; i++) {
+            var ele = reCapIDs[i];
+            var btn = nv_recaptcha_elements[ele[0]];
+            if ($(\'#\' + btn.id).length) {
+                if (typeof btn.btn != "undefined" && btn.btn != "") {
+                    btn.btn.prop(\'disabled\', true);
+                }
+                grecaptcha.reset(ele[1]);
+            }
+        }
+        reCaptchaLoadCallback();
+    } else {
+        $("img.captchaImg").attr("src", nv_base_siteurl + "index.php?scaptcha=captcha&nocache=" + nv_randomPassword(10));
+        "undefined" != typeof a && "" != a && $(a).val("");
+    }
+    return !1
+}'
+                ));
+            }
+            
+            // Thay thế hàm modalShow nếu có
+            if (preg_match("/function[\s]+modalShow[\s]*\(/", $output_data, $m)) {
+                nv_get_update_result('base');
+                nvUpdateContructItem('base', 'js');
+                
+                if (preg_match("/function[\s]+modalShow[\s]*\([\s]*([a-z0-9]+)[\s]*\,[\s]*([a-z0-9]+)[\s]*\)[\s]*\{/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = 'function modalShow(a, b, callback) {';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('base', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('base', array(
+                        'find' => 'function modalShow(a, b) {',
+                        'replace' => 'function modalShow(a, b, callback) {'
+                    ));
+                }
+                
+                nvUpdateContructItem('base', 'js');
+                
+                if (preg_match("/\\$\([\s]*(\"|')\#sitemodal(\"|')[\s]*\)\.on[\s]*\([\s]*(\"|')hidden\.bs\.modal(.*)\.modal[\s]*\([\s]*\{backdrop[\s]*\:[\s]*(\"|')static(\"|')[\s]*\}[\s]*\)\;*/s", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = 'var scrollTop = false;
+    if (typeof callback != "undefined") {
+        if (callback == "recaptchareset" && typeof nv_is_recaptcha != "undefined" && nv_is_recaptcha) {
+            scrollTop = $(window).scrollTop();
+            $(\'#sitemodal\').on(\'show.bs.modal\', function() {
+                $(\'[data-toggle="recaptcha"]\', $(this)).each(function() {
+                    var parent = $(this).parent();
+                    var oldID = $(this).attr(\'id\');
+                    var id = "recaptcha" + (new Date().getTime()) + nv_randomPassword(8);
+                    var ele;
+                    var btn = false, pnum = 0, btnselector = \'\';
+                    
+                    $(this).remove();
+                    parent.append(\'<div id="\' + id + \'" data-toggle="recaptcha"></div>\');
+                    
+                    for (i = 0, j = nv_recaptcha_elements.length; i < j; i++) {
+                        ele = nv_recaptcha_elements[i];
+                        if (typeof ele.pnum != "undefined" && typeof ele.btnselector != "undefined" && ele.pnum && ele.btnselector != "" && ele.id == oldID) {
+                            pnum = ele.pnum;
+                            btnselector = ele.btnselector;
+                            btn = $(\'#\' + id);
+                            for (k = 1; k <= ele.pnum; k ++) {
+                                btn = btn.parent();
+                            }
+                            btn = $(ele.btnselector, btn);
+                            break;
+                        }
+                    }
+                    var newEle = {};
+                    newEle.id = id;
+                    if (btn != false) {
+                        newEle.btn = btn;
+                        newEle.pnum = pnum;
+                        newEle.btnselector = btnselector;
+                    }
+                    nv_recaptcha_elements.push(newEle);
+                });
+                reCaptchaLoadCallback();
+            });
+        }
+    }
+    if (scrollTop) {
+        $("html,body").animate({scrollTop: 0}, 200, function() {
+            $("#sitemodal").modal({
+                backdrop: "static"
+            });
+        });
+        $(\'#sitemodal\').on(\'hide.bs.modal\', function() {
+            $("html,body").animate({scrollTop: scrollTop}, 200);
+        });
+    } else {
+        $("#sitemodal").modal({
+            backdrop: "static"
+        });
+    }
+    $(\'#sitemodal\').on(\'hidden.bs.modal\', function() {
+        $("#sitemodal .modal-content").find(".modal-header").remove();
+    });';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('base', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('base', array(
+                        'find' => '// Hàm modalShow',
+                        'replaceMessage' => 'Trong hàm đó tìm',
+                        'replace' => '    $(\'#sitemodal\').on(\'hidden.bs.modal\', function () {
+            $("#sitemodal .modal-content").find(".modal-header").remove()
+        });
+    $("#sitemodal").modal({backdrop: "static"})',
+                        'addafterMessage' => 'Thay lại thành',
+                        'addafter' => '    var scrollTop = false;
+    if (typeof callback != "undefined") {
+        if (callback == "recaptchareset" && typeof nv_is_recaptcha != "undefined" && nv_is_recaptcha) {
+            scrollTop = $(window).scrollTop();
+            $(\'#sitemodal\').on(\'show.bs.modal\', function() {
+                $(\'[data-toggle="recaptcha"]\', $(this)).each(function() {
+                    var parent = $(this).parent();
+                    var oldID = $(this).attr(\'id\');
+                    var id = "recaptcha" + (new Date().getTime()) + nv_randomPassword(8);
+                    var ele;
+                    var btn = false, pnum = 0, btnselector = \'\';
+                    
+                    $(this).remove();
+                    parent.append(\'<div id="\' + id + \'" data-toggle="recaptcha"></div>\');
+                    
+                    for (i = 0, j = nv_recaptcha_elements.length; i < j; i++) {
+                        ele = nv_recaptcha_elements[i];
+                        if (typeof ele.pnum != "undefined" && typeof ele.btnselector != "undefined" && ele.pnum && ele.btnselector != "" && ele.id == oldID) {
+                            pnum = ele.pnum;
+                            btnselector = ele.btnselector;
+                            btn = $(\'#\' + id);
+                            for (k = 1; k <= ele.pnum; k ++) {
+                                btn = btn.parent();
+                            }
+                            btn = $(ele.btnselector, btn);
+                            break;
+                        }
+                    }
+                    var newEle = {};
+                    newEle.id = id;
+                    if (btn != false) {
+                        newEle.btn = btn;
+                        newEle.pnum = pnum;
+                        newEle.btnselector = btnselector;
+                    }
+                    nv_recaptcha_elements.push(newEle);
+                });
+                reCaptchaLoadCallback();
+            });
+        }
+    }
+    if (scrollTop) {
+        $("html,body").animate({scrollTop: 0}, 200, function() {
+            $("#sitemodal").modal({
+                backdrop: "static"
+            });
+        });
+        $(\'#sitemodal\').on(\'hide.bs.modal\', function() {
+            $("html,body").animate({scrollTop: scrollTop}, 200);
+        });
+    } else {
+        $("#sitemodal").modal({
+            backdrop: "static"
+        });
+    }
+    $(\'#sitemodal\').on(\'hidden.bs.modal\', function() {
+        $("#sitemodal .modal-content").find(".modal-header").remove();
+    });'
+                    ));
+                }
+            }
+            
+            // Thay thế hàm modalShowByObj nếu có
+            if (preg_match("/function[\s]+modalShowByObj[\s]*\(/", $output_data, $m)) {
+                nv_get_update_result('base');
+                nvUpdateContructItem('base', 'js');
+                
+                if (preg_match("/function[\s]+modalShowByObj[\s]*\([\s]*a[\s]*\)[\s]*\{/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = 'function modalShowByObj(a, callback) {';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('base', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('base', array(
+                        'find' => 'function modalShowByObj(a) {',
+                        'replace' => 'function modalShowByObj(a, callback) {'
+                    ));
+                }
+                
+                nvUpdateContructItem('base', 'js');
+                
+                if (preg_match("/modalShow[\s]*\([\s]*b[\s]*\,[\s]*c[\s]*\)\;*[\s\n\t\r]+\}/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = 'modalShow(b, c, callback)
+}';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('base', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('base', array(
+                        'find' => '    modalShow(b, c)
+}',
+                        'replace' => '    modalShow(b, c, callback)
+}'
+                    ));
+                }
             }
             
             nv_get_update_result('base');
@@ -247,7 +781,20 @@ var reCaptchaResCallback = function() {
             }
         }
     }
-}';
+}
+
+// Run Captcha
+$(window).on(\'load\', function() {
+    if (typeof nv_is_recaptcha != "undefined" && nv_is_recaptcha && nv_recaptcha_elements.length > 0) {
+        var a = document.createElement("script");
+        a.type = "text/javascript";
+        a.async = !0;
+        a.src = "https://www.google.com/recaptcha/api.js?hl=" + nv_lang_interface + "&onload=reCaptchaLoadCallback&render=explicit";
+        var b = document.getElementsByTagName("script")[0];
+        b.parentNode.insertBefore(a, b);
+    }
+});
+';
             
             nvUpdateSetItemData('base', array(
                 'status' => 1,
@@ -261,8 +808,20 @@ var reCaptchaResCallback = function() {
             if (preg_match("/\\$\([\s]*(\"|')\[data\-toggle\=tip\][\s]*\,[\s]*\[data\-toggle\=ftip\](\"|')[\s]*\)\.click/", $output_data, $m)) {
                 nv_get_update_result('base');
                 nvUpdateContructItem('base', 'js');
-                nvUpdateSetItemGuide('base', array(
-                    'find' => '    $("[data-toggle=tip], [data-toggle=ftip]").click(function() {
+                
+                if (preg_match("/a[\s]*\!\=[\s]*c[\s]*\?[\s]*\([\s]*\"\"[\s]*\!\=[\s]*c[\s]*\&\&[\s]*\\$\([\s]*\'\[data\-target(.*)ftipShow[\s]*\([\s]*this[\s]*\,[\s]*a[\s]*\)[\s]*\;/", $output_data, $m)) {
+                    $find = $m[0];
+                    $replace = 'var callback = $(this).data("callback");
+        a != c ? ("" != c && $(\'[data-target="\' + c + \'"]\').attr("data-click", "y"), "tip" == b ? ($("#tip .bg").html(d), tipShow(this, a, callback)) : ($("#ftip .bg").html(d), ftipShow(this, a, callback))) : "n" == $(this).attr("data-click") ? "tip" == b ? tipHide() : ftipHide() : "tip" == b ? tipShow(this, a, callback) : ftipShow(this, a, callback);';
+                    $output_data = str_replace($find, $replace, $output_data);
+                    nvUpdateSetItemData('base', array(
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ));
+                } else {
+                    nvUpdateSetItemGuide('base', array(
+                        'find' => '    $("[data-toggle=tip], [data-toggle=ftip]").click(function() {
         var a = $(this).attr("data-target"),
             d = $(a).html(),
             b = $(this).attr("data-toggle"),
@@ -270,12 +829,13 @@ var reCaptchaResCallback = function() {
         a != c ? ("" != c && $(\'[data-target="\' + c + \'"]\').attr("data-click", "y"), "tip" == b ? ($("#tip .bg").html(d), tipShow(this, a)) : ($("#ftip .bg").html(d), ftipShow(this, a))) : "n" == $(this).attr("data-click") ? "tip" == b ? tipHide() : ftipHide() : "tip" == b ? tipShow(this, a) : ftipShow(this, a);
         return !1
     });',
-                    'addbeforeMessage' => 'Trong đó xác định',
-                    'addbefore' => '        a != c ? ("" != c && $(\'[data-target="\' + c + \'"]\').attr("data-click", "y"), "tip" == b ? ($("#tip .bg").html(d), tipShow(this, a)) : ($("#ftip .bg").html(d), ftipShow(this, a))) : "n" == $(this).attr("data-click") ? "tip" == b ? tipHide() : ftipHide() : "tip" == b ? tipShow(this, a) : ftipShow(this, a);',
-                    'addafterMessage' => 'Thay bằng',
-                    'addafter' => '        var callback = $(this).data("callback");
+                        'addbeforeMessage' => 'Trong đó xác định',
+                        'addbefore' => '        a != c ? ("" != c && $(\'[data-target="\' + c + \'"]\').attr("data-click", "y"), "tip" == b ? ($("#tip .bg").html(d), tipShow(this, a)) : ($("#ftip .bg").html(d), ftipShow(this, a))) : "n" == $(this).attr("data-click") ? "tip" == b ? tipHide() : ftipHide() : "tip" == b ? tipShow(this, a) : ftipShow(this, a);',
+                        'addafterMessage' => 'Thay bằng',
+                        'addafter' => '        var callback = $(this).data("callback");
         a != c ? ("" != c && $(\'[data-target="\' + c + \'"]\').attr("data-click", "y"), "tip" == b ? ($("#tip .bg").html(d), tipShow(this, a, callback)) : ($("#ftip .bg").html(d), ftipShow(this, a, callback))) : "n" == $(this).attr("data-click") ? "tip" == b ? tipHide() : ftipHide() : "tip" == b ? tipShow(this, a, callback) : ftipShow(this, a, callback);'
-                ));
+                    ));
+                }
             }
             
             // Các thành phần dưới đây không bắt buộc
