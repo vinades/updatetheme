@@ -886,7 +886,7 @@ $(window).on(\'load\', function() {
         }
         
         if ($contents_file != $output_data) {
-            //file_put_contents($file, $output_data, LOCK_EX);
+            file_put_contents($file, $output_data, LOCK_EX);
         }
     }
     
