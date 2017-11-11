@@ -293,14 +293,9 @@ function nv_theme_viewpdf($file_url)
 
     nvUpdateContructItem('news', 'html');
 
-    if (preg_match("/\<input([^\>]*)value[\s]*\=[\s]*('|\")\{DATA\.author\}('|\")([^\>]*)\>[\s\n\t\r]*\<\/div\>[\s\n\t\r]*\<\/div\>/i", $output_data, $m)) {
+    if (preg_match("/\<div[\s]*class[\s]*\=[\s]*('|\")form\-group('|\")[\s]*\>[\s\n\t\r]*\<label([^\>]+)\>[\s]*\{LANG\.content\_keywords\}[\s]*\<\/label\>[\s\n\t\r]*\<div([^\>]+)\>[\s\n\t\r]*\<input([^\>]+)\>[\s\n\t\r]*\<\/div\>[\s\n\t\r]*\<\/div\>[\s\n\t\r]*/is", $output_data, $m)) {
         $find = $m[0];
-        $replace = $m[0] . "\n" . '    <div class="form-group">
-        <label class="col-sm-4 control-label">{LANG.content_keywords}</label>
-        <div class="col-sm-20">
-            <input maxlength="255" value="{DATA.keywords}" name="keywords" type="text" class="form-control" />
-        </div>
-    </div>';
+        $replace = '';
         $output_data = str_replace($find, $replace, $output_data);
         nvUpdateSetItemData('news', array(
             'status' => 1,
@@ -309,15 +304,13 @@ function nv_theme_viewpdf($file_url)
         ));
     } else {
         nvUpdateSetItemGuide('news', array(
-            'find' => '			<input maxlength="255" value="{DATA.author}" name="author" type="text" class="form-control" />
-		</div>
-	</div>',
-            'addafter' => '    <div class="form-group">
+            'find' => '	<div class="form-group">
 		<label class="col-sm-4 control-label">{LANG.content_keywords}</label>
 		<div class="col-sm-20">
 			<input maxlength="255" value="{DATA.keywords}" name="keywords" type="text" class="form-control" />
 		</div>
-	</div>'
+	</div>',
+            'findMessage' => 'Tìm và xóa đoạn'
         ));
     }
 } elseif (preg_match('/news\/detail\.tpl$/', $file)) {

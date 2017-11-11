@@ -322,11 +322,11 @@ fieldset[disabled] .openid-single-sign-on:focus {
     nv_get_update_result('users');
     nvUpdateContructItem('users', 'html');
 
-    $output_data_check = str_replace('/default/', '/{TEMPLATE}/', $output_data);
+    $output_data_check = str_replace('/default/', '/{BLOCK_THEME}/', $output_data);
     if ($output_data_check != $output_data) {
         $output_data = $output_data_check;
         $find = '/default/';
-        $replace = '/{TEMPLATE}/';
+        $replace = '/{BLOCK_THEME}/';
         nvUpdateSetItemData('users', array(
             'status' => 1,
             'find' => $find,
@@ -342,11 +342,11 @@ fieldset[disabled] .openid-single-sign-on:focus {
     nv_get_update_result('users');
     nvUpdateContructItem('users', 'html');
 
-    $output_data_check = str_replace('/default/', '/{TEMPLATE}/', $output_data);
+    $output_data_check = str_replace('/default/', '/{BLOCK_THEME}/', $output_data);
     if ($output_data_check != $output_data) {
         $output_data = $output_data_check;
         $find = '/default/';
-        $replace = '/{TEMPLATE}/';
+        $replace = '/{BLOCK_THEME}/';
         nvUpdateSetItemData('users', array(
             'status' => 1,
             'find' => $find,

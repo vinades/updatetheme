@@ -158,24 +158,81 @@ if ($nv_Request->isset_request('submit', 'post')) {
 '
                 ));
             }
-        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/blocks\/([a-zA-Z0-9\.\-\_]+)\.php$/', $file)) {
-            // Nâng cấp các block banners của theme
-            $output_data = str_replace('$banners[\'link\'] = NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=banners&amp;\' . NV_OP_VARIABLE . \'=click&amp;id=\' . $banners[\'id\'];', '$banners[\'link\'] = NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=banners&amp;\' . NV_OP_VARIABLE . \'=click&amp;id=\' . $banners[\'id\'] . \'&amp;s=\' . md5($banners[\'id\'] . NV_CHECK_SESSION);', $output_data);
-            $output_data = str_replace('$banners[\'link\'] = NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&\' . NV_NAME_VARIABLE . \'=banners&\' . NV_OP_VARIABLE . \'=click&id=\' . $banners[\'id\'];', '$banners[\'link\'] = NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=banners&amp;\' . NV_OP_VARIABLE . \'=click&amp;id=\' . $banners[\'id\'] . \'&amp;s=\' . md5($banners[\'id\'] . NV_CHECK_SESSION);', $output_data);
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/blocks\/([a-zA-Z0-9\.\-\_]+)\.php$/', $file, $parseBlock)) {
+            $isContructed = false;
 
-            if ($output_data != $contents_file) {
-                nv_get_update_result('base');
+            // Kiểm tra xem block có cấu hình không
+            if (file_exists(NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update . '/blocks/' . $parseBlock[1] . '.ini')) {
+                $xml = simplexml_load_file(NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update . '/blocks/' . $parseBlock[1] . '.ini');
+                if ($xml !== false) {
+                    $submit_function = trim($xml->submitfunction);
+                    if (!empty($submit_function)) {
+                        // Nếu có cấu hình thì replace phần cấu hình
+                        // Phần này tạm bỏ, cần làm bằng tay
+                        /*
+                        unset($m);
+                        preg_match_all("/\\$([a-zA-Z0-9\_]+)[\s]*(\.*)\=[\s]*('|\")\<(\/*)tr\>('|\")[\s]*\;/i", $output_data, $m);
+                        if (!empty($m[1])) {
+                            foreach ($m[1] as $k => $v) {
+                                $find = $m[0][$k];
+                                $replace = '$' . $m[1][$k] . ' ' . $m[2][$k] . '= \'<' . (empty($m[4][$k]) ? 'div class="form-group"' : '/div') . '>\';';
+                                $output_data = str_replace($find, $replace, $output_data);
+                            }
+                        }
+                        */
+                        $isContructed = true;
+                        nv_get_update_result('base');
+                        nvUpdateContructItem('base', 'html');
+                        nvUpdateSetItemGuide('base', array(
+                            'findMessage' => 'Lúc trước khi xuất ra HTML, phần cấu hình block thường viết dạng',
+                            'find' => '<tr>
+    <td>Phần tiêu đề</td>
+    <td>Phần input</td>
+</tr>',
+                            'replaceMessage' => 'Cần sửa lại thành',
+                            'replace' => '<div class="form-group">
+    <label class="control-label col-sm-6">Phần tiêu đề:</label>
+    <div class="col-sm-18">Phần input</div>
+</div>'
+                        ));
+                    }
+                }
+            }
+
+            // Chỉnh lại câu query của news cat
+            if (preg_match("/\\\$sql[\s]*\=[\s]*('|\")SELECT[\s]*catid([^\;]+)\;/i", $output_data, $m)) {
+                if (!$isContructed) {
+                    nv_get_update_result('base');
+                }
                 nvUpdateContructItem('base', 'php');
+                $find = $m[0];
+                $replace = str_replace('inhome', 'status', $m[0]);
+                $output_data = str_replace($find, $replace, $output_data);
                 nvUpdateSetItemData('base', array(
                     'status' => 1,
-                    'find' => '$banners[\'link\'] = NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=banners&amp;\' . NV_OP_VARIABLE . \'=click&amp;id=\' . $banners[\'id\'];',
-                    'replace' => '$banners[\'link\'] = NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=banners&amp;\' . NV_OP_VARIABLE . \'=click&amp;id=\' . $banners[\'id\'] . \'&amp;s=\' . md5($banners[\'id\'] . NV_CHECK_SESSION);'
+                    'find' => $find,
+                    'replace' => $replace,
+                ));
+            }
+
+            // Kiểm tra tiếp còn trường inhome thì cảnh báo
+            if (preg_match("/inhome/i", $output_data, $m)) {
+                if (!$isContructed) {
+                    nv_get_update_result('base');
+                }
+                nvUpdateContructItem('base', 'html');
+                nvUpdateSetItemGuide('base', array(
+                    'find' => 'Những chỗ sử dụng trường inhome ở bảng cat',
+                    'replace' => 'Đổi thành status với:
+
+inhome = 1 => status = 1;
+inhome = 0 => status = 2;'
                 ));
             }
         }
 
         if ($contents_file != $output_data) {
-            //file_put_contents($file, $output_data, LOCK_EX);
+            file_put_contents($file, $output_data, LOCK_EX);
         }
     }
 
