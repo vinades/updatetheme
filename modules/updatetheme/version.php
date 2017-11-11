@@ -13,8 +13,8 @@ if (!defined('NV_MAINFILE'))
 
 $module_version = array(
     'name' => 'Update Theme',
-    'modfuncs' => 'main,4029-4100,4029-4102,4029-4201',
-    'submenu' => 'main,4029-4100,4029-4102,4029-4201',
+    'modfuncs' => 'main,4029-4100,4029-4102,4029-4201,4201-4300',
+    'submenu' => 'main,4029-4100,4029-4102,4029-4201,4201-4300',
     'is_sysmod' => 0,
     'virtual' => 0,
     'version' => '4.1.02',

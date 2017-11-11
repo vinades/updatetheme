@@ -8,6 +8,7 @@
 <div class="panel panel-info">
     <div class="panel-heading"><strong>CHỌN PHIÊN BẢN CẦN CẬP NHẬT</strong></div>
     <div class="list-group">
+        <a href="{LINK_PREFIX}4201-4300" class="list-group-item">Giao diện v4.2.01 lên v4.3.00</a>
         <a href="{LINK_PREFIX}4029-4201" class="list-group-item">Giao diện v4.0.29 lên v4.2.01</a>
         <a href="{LINK_PREFIX}4029-4102" class="list-group-item">Giao diện v4.0.29 lên v4.1.02</a>
         <a href="{LINK_PREFIX}4029-4100" class="list-group-item">Giao diện v4.0.29 lên v4.1.00</a>

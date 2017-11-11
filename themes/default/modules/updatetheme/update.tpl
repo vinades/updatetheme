@@ -1,6 +1,6 @@
 <!-- BEGIN: main -->
 <!-- BEGIN: form -->
-<div class="alert alert-info">Hệ thống phát hiện giao diện có giao diện <strong>{THEMEUPDATE}</strong>. Nhấp vào nút bên dưới để cập nhật ngay giao diện này từ 4.0.29 lên 4.1.00</div>
+<div class="alert alert-info">Hệ thống phát hiện giao diện có giao diện <strong>{THEMEUPDATE}</strong>. Nhấp vào nút bên dưới để cập nhật ngay giao diện này.</div>
 <form method="post" action="" class="margin-bottom-lg">
     <input type="hidden" name="submit" value="1"/>
     <input type="submit" value="CẬP NHẬT GIAO DIỆN {THEMEUPDATE}" class="btn btn-primary btn-lg btn-block btn-submitupdate"/>
