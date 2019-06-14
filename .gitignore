@@ -56,3 +56,6 @@
 !/themes/admin_default/images/updatetheme
 !/themes/admin_default/modules/updatetheme
 /error.php
+/.buildpath
+/.github
+/.settings
