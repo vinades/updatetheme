@@ -10,7 +10,345 @@
 
 if (!defined('NV_IS_MOD_UPDATETHEME'))
     die('Stop!!!');
+$array_files_update=array();
+/*
+Chuyển breadcrumb từ vocabulary sang schema.org
 
+Mở file themes/theme-cua-ban/layout/header_extended.tpl tìm:
+
+<ul class="temp-breadcrumbs hidden">
+Thay thành:
+
+<ul class="temp-breadcrumbs hidden" itemscope itemtype="https://schema.org/BreadcrumbList">
+Trong thẻ ul đó tìm các thẻ li (có khoảng 2 thẻ), thay thế các thành phần sau: Thay:
+
+itemscope itemtype="http://data-vocabulary.org/Breadcrumb"
+Thành
+
+itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"
+Thay itemprop="url" thành itemprop="item". Thay itemprop="title" thành itemprop="name".
+
+Trước khi đóng thẻ li thứ nhất thêm:
+
+<i class="hidden" itemprop="position" content="1"></i>
+Trước khi đóng thẻ li thứ hai thêm:
+
+<i class="hidden" itemprop="position" content="{BREADCRUMBS.position}"></i>
+Sau khi hoàn chỉnh kết quả sẽ như sau:
+<ul class="temp-breadcrumbs hidden" itemscope itemtype="https://schema.org/BreadcrumbList">
+    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a href="{THEME_SITE_HREF}" itemprop="item" title="{LANG.Home}">
+            <span itemprop="name">{LANG.Home}</span>
+        </a>
+        <i class="hidden" itemprop="position" content="1"></i>
+    </li>
+    <!-- BEGIN: loop -->
+    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a href="{BREADCRUMBS.link}" itemprop="item" title="{BREADCRUMBS.title}">
+            <span class="txt" itemprop="name">{BREADCRUMBS.title}</span>
+        </a>
+        <i class="hidden" itemprop="position" content="{BREADCRUMBS.position}"></i>
+    </li>
+    <!-- END: loop -->
+</ul>
+Note: Làm có hơi phức tạp một chút để đề phòng trường hợp tag ul và li ngoài các class có sẳn
+lập trình viên có thể thêm các class khác thì khi cập nhật vẫn bảo tồn những class đó.
+*/
+function updateFileBreadcrumb($contents_file)
+{
+    $pattern = '/<ul\s+class\s*=\s*"((.*\s+)?temp-breadcrumbs\s+(.*\s+)?hidden([^"]*\s*)?)"\s*>[\s\S]*?<\/ul>/';
+    preg_match_all($pattern, $contents_file,$match);
+    foreach ($match[0] as $k=>$tag) {
+        $rs="<ul class=\"".$match[1][$k]."\" itemscope itemtype=\"https://schema.org/BreadcrumbList\">";
+        $tag=preg_replace('/itemtype\s*=\s*"\s*http:\/\/data-vocabulary.org\/Breadcrumb\s*"/','itemtype="https://schema.org/ListItem"',$tag);
+        $tag=preg_replace('/itemprop\s*=\s*"\s*url\s*"/','itemprop="item"',$tag);
+        $tag=preg_replace('/itemprop\s*=\s*"\s*title\s*"/','itemprop="name"',$tag);
+        preg_match_all('/<li\s+([^>]*)>([\s\S]*?)<\/li>/', $tag,$match1);
+        foreach ($match1[0] as $k1=>$tag1){
+            $rs.="\n<li itemprop=\"itemListElement\" ".$match1[1][$k1].">";
+            $rs.=$match1[2][$k1];
+            if ($k1==0) {
+                $rs.='<i class="hidden" itemprop="position" content="1"></i>';
+            } elseif ($k1==count($match1[0])-1){
+                $rs.='<i class="hidden" itemprop="position" content="{BREADCRUMBS.position}"></i>';
+            }
+            $rs.="</li>";
+        }
+        $rs.="</ul>";
+        $contents_file=str_replace($match[0][$k],$rs,$contents_file);
+    }
+    return $contents_file;
+}
+/*
+Mở file themes/default/theme.php tìm
+
+foreach ($array_mod_title_copy as $arr_cat_title_i) {
+Thêm lên bên trên:
+
+$border = 2;
+Thêm xuống dưới:
+
+$arr_cat_title_i['position'] = $border++;
+*/
+function updateFileTheme($contents_file)
+{
+    $pattern = '/\s*[^\w\d]\$border = 2;\s*\n*[^\w\d]foreach\s+\(\s*\$array_mod_title_copy\s+as\s+\$arr_cat_title_i\s*\)\s+\{\s*\n*\s*\$arr_cat_title_i\[\'position\'\]\s*=\s*\$border\+\+;\s*\n*/';
+    if (!preg_match($pattern,$contents_file,$m)) {
+        $pattern = '/\s*[^\w\d]foreach\s+\(\s*\$array_mod_title_copy\s+as\s+\$arr_cat_title_i\s*\)\s+\{\s*/';
+        $replace="\n\$border = 2;\nforeach (\$array_mod_title_copy as \$arr_cat_title_i) {\n\$arr_cat_title_i['position'] = \$border++;\n";
+        $contents_file=preg_replace($pattern,$replace,$contents_file);
+    }   
+    return $contents_file;
+}
+/*
+Nếu giao diện của bạn tồn tại file themes/theme-cua-ban/modules/news/detail.tpl 
+tìm đoạn code từ thẻ <!-- BEGIN: data_rating --> đến thẻ <!-- END: data_rating --> thay bằng đoạn code sau
+<span itemscope itemtype="https://schema.org/AggregateRating">
+    <span class="hidden d-none hide" itemprop="itemReviewed" itemscope itemtype="https://schema.org/CreativeWorkSeries">
+        <span class="hidden d-none hide" itemprop="name">{DETAIL.title}</span>
+    </span>
+    {LANG.rating_average}:
+    <span id="numberrating" itemprop="ratingValue">{DETAIL.numberrating}</span> -
+    <span id="click_rating" itemprop="ratingCount">{DETAIL.click_rating}</span> {LANG.rating_count}
+    <span class="hidden d-none hide" itemprop="bestRating">5</span>
+</span>
+Ví dụ thay:
+<!-- BEGIN: data_rating -->
+<span itemscope itemtype="http://data-vocabulary.org/Review-aggregate">{LANG.rating_average}:
+    <span itemprop="rating" id="numberrating">{DETAIL.numberrating}</span> -
+    <span itemprop="votes" id="click_rating">{DETAIL.click_rating}</span> {LANG.rating_count}
+</span>
+<!-- END: data_rating -->
+Thành:
+<!-- BEGIN: data_rating -->
+<span itemscope itemtype="https://schema.org/AggregateRating">
+    <span class="hidden d-none hide" itemprop="itemReviewed" itemscope itemtype="https://schema.org/CreativeWorkSeries">
+        <span class="hidden d-none hide" itemprop="name">{DETAIL.title}</span>
+    </span>
+    {LANG.rating_average}:
+    <span id="numberrating" itemprop="ratingValue">{DETAIL.numberrating}</span> -
+    <span id="click_rating" itemprop="ratingCount">{DETAIL.click_rating}</span> {LANG.rating_count}
+    <span class="hidden d-none hide" itemprop="bestRating">5</span>
+</span>
+<!-- END: data_rating -->
+*/
+function updateFileNewsDetail($contents_file)
+{
+    $pattern = '/<!--\s+BEGIN:\s+data_rating\s+-->[\s\S]*?<!--\s+END:\s+data_rating\s+-->/';
+    $replace="<!-- BEGIN: data_rating -->\n<span itemscope itemtype=\"https://schema.org/AggregateRating\">
+    <span class=\"hidden d-none hide\" itemprop=\"itemReviewed\" itemscope itemtype=\"https://schema.org/CreativeWorkSeries\">
+        <span class=\"hidden d-none hide\" itemprop=\"name\">{DETAIL.title}</span>
+    </span>
+    {LANG.rating_average}:
+    <span id=\"numberrating\" itemprop=\"ratingValue\">{DETAIL.numberrating}</span> -
+    <span id=\"click_rating\" itemprop=\"ratingCount\">{DETAIL.click_rating}</span> {LANG.rating_count}
+    <span class=\"hidden d-none hide\" itemprop=\"bestRating\">5</span>
+    </span>\n<!-- END: data_rating -->";
+    $contents_file=preg_replace($pattern,$replace,$contents_file);
+    return $contents_file;
+}
+/*
+Module page: Thêm cấu hình số ký tự tiêu đề, giới thiệu, hiển thị ảnh cho global.page.php
+Việc sửa này không bắt buộc, nếu không sửa thì các cấu hình của block chỉ không hiển thị hình ảnh minh họa:
+
+Sửa file (nếu có): themes/my_theme/modules/page/block.about.tpl tìm đến đoạn:
+
+<h3 class="margin-bottom"><a title="{TITLE}" href="{LINK}">{TITLE}</a></h3>
+Sửa lại thành:
+
+<!-- BEGIN: image -->
+<div class="image pull-left">
+    <a href="{LINK}" title="{TITLE}"> <img src="{IMAGE}" alt="{TITLE}" class="img-responsive" /></a>
+</div>
+<!-- END: image -->
+<h3 class="margin-bottom">
+    <a title="{TITLE}" href="{LINK}">{TITLE}</a>
+</h3>
+*/
+function updateFilePageBlockAbout($contents_file)
+{
+    $pattern = '/<!-- BEGIN: image -->/';
+    if (!preg_match($pattern,$contents_file,$m)) {
+        $pattern = '/<h3\s+class\s*=\s*"((.*\s+)?margin-bottom([^"]*\s*)?)"\s*>[\s\S]*?<\/h3>/';
+        preg_match_all($pattern, $contents_file,$match);
+        if ($h3=$match[0][0]) {
+            $replace="<!-- BEGIN: image -->\n<div class=\"image pull-left\">\n<a href=\"{LINK}\" title=\"{TITLE}\"> <img src=\"{IMAGE}\" alt=\"{TITLE}\" class=\"img-responsive\" /></a>\n</div>\n<!-- END: image -->\n".$h3;
+            $contents_file=preg_replace($pattern,$replace,$contents_file);
+        }
+    }   
+    return $contents_file;
+}
+/*
+Sửa lỗi giao diện block global.login.php và global.user_button.php
+Mở themes/ten-theme/modules/users/block.login.tpl (nếu có) và 
+themes/ten-theme/modules/users/block.user_button.tpl (nếu có) tìm những đoạn
+
+{NV_BASE_SITEURL}themes/{BLOCK_THEME}/js/users.js
+Hoặc
+
+{NV_BASE_SITEURL}themes/default/js/users.js
+Thay lại thành
+
+{NV_BASE_SITEURL}themes/{BLOCK_JS}/js/users.js
+*/
+function updateFileUserBlockLogin($contents_file)
+{
+    $replace="{NV_BASE_SITEURL}themes/{BLOCK_JS}/js/users.js";
+    $pattern1 = '/\{\s*NV_BASE_SITEURL\s*\}\s*themes\s*\/\{\s*BLOCK_THEME\s*\}\/\s*js\s*\/\s*users.js\s*/';
+    $pattern2 = '/\{\s*NV_BASE_SITEURL\\s*}\s*themes\s*\/default\s*\/\s*js\s*\/\s*users.js\s*/';
+    $contents_file=preg_replace($pattern1,$replace,$contents_file); 
+    $contents_file=preg_replace($pattern2,$replace,$contents_file);
+    return $contents_file;
+}
+/*
+Xóa google fonts khi thay đổi thiết lập giao diện
+Mở themes/ten-themes/config.php tìm
+
+    $nv_Cache->delMod('settings');
+Thêm xuống dưới
+
+    $gfonts = new NukeViet\Client\Gfonts();
+    $gfonts->destroyAll();
+*/
+function updateFileConfig($contents_file)
+{
+    $pattern = '/\$gfonts\s*=\s*new\s+NukeViet\\\Client\\\Gfonts\(\);/';
+    if (!preg_match($pattern,$contents_file,$m)) {
+        $pattern = '/\s*[^\w\d]\$nv_Cache->delMod\(\s*\'settings\s*\'\)\s*;\s*/';
+        $replace="\n\$nv_Cache->delMod('settings');\n\$gfonts = new NukeViet\\Client\\Gfonts();\n\$gfonts->destroyAll();\n";
+        $contents_file=preg_replace($pattern,$replace,$contents_file);
+    }   
+    return $contents_file;
+}
+/*
+Xóa bỏ tích hợp web Google+ (Việc này cần làm do Google đã gỡ bỏ nền tảng Google Plus):
+Tìm và xóa các đoạn tương tự như sau trong các file tpl của giao diện
+
+<div class="g-plusone" data-size="medium"></div>
+Đối với giao diện mặc định chúng tôi kiểm tra nó có ở những file sau:
+
+themes/my_theme/modules/news/detail.tpl
+themes/my_theme/modules/page/main.tpl
+themes/mobile_my_theme/modules/news/detail.tpl
+*/
+function updateFileGooglePlus($contents_file)
+{
+    $pattern = '/<div\s+class\s*=\s*"g-plusone"\s+data-size\s*=\s*"medium"\s*>\s*<\/div>\n*/';
+    $contents_file=preg_replace($pattern,'',$contents_file);
+    return $contents_file;
+}
+/*
+Tìm và xóa các đoạn tương tự như sau trong js của giao diện
+
+0 < $(".g-plusone").length && (window.___gcfg = {
+        lang: nv_lang_data
+    }, function() {
+        var a = document.createElement("script");
+        a.type = "text/javascript";
+        a.async = !0;
+        a.src = "//apis.google.com/js/plusone.js";
+        var b = document.getElementsByTagName("script")[0];
+        b.parentNode.insertBefore(a, b);
+    }());
+Đối với giao diện mặc định chúng tôi kiểm tra nó có ở những file sau:
+
+themes/my_theme/js/main.js
+themes/mobile_my_theme/js/main.js để xóa bỏ đoạn:
+Note: Nếu chẳng may lập trình viên có thay đổi một chút đoạn này thì sẽ không thể xóa được
+*/
+function updateFileJsGooglePlus($contents_file)
+{
+    $pattern = '0 < $(".g-plusone").length && (window.___gcfg = {
+        lang: nv_lang_data
+    }, function() {
+        var a = document.createElement("script");
+        a.type = "text/javascript";
+        a.async = !0;
+        a.src = "//apis.google.com/js/plusone.js";
+        var b = document.getElementsByTagName("script")[0];
+        b.parentNode.insertBefore(a, b);
+    }());';
+    $contents_file=str_replace($pattern,'',$contents_file);
+    return $contents_file;
+}
+/*
+Nếu website của bạn có tùy biến dữ liệu user với kiểu dữ liệu trình soạn thảo và đang bị lỗi không hiển thị trình soạn thảo, tồn tại file themes/ten_theme/js/users.js thì mở lên tìm
+function reg_validForm(a) {
+Thêm xuống dưới
+
+    // Xử lý các trình soạn thảo
+    if (typeof CKEDITOR != "undefined") {
+        for (var instanceName in CKEDITOR.instances) {
+            $('#' + instanceName).val(CKEDITOR.instances[instanceName].getData());
+        }
+    }
+*/
+function updateFileUsersJs($contents_file)
+{
+    $pattern = '/function\s+reg_validForm\(a\)\s*\n*\s*[\s\S]*?CKEDITOR/';
+    if (!preg_match($pattern,$contents_file,$m)) {
+        $pattern = '/(\s+|\n+)function\s+reg_validForm\s*\(\s*a\s*\)\s*\{/';
+        $replace="\nfunction reg_validForm(a) {\nif (typeof CKEDITOR != \"undefined\") {
+            for (var instanceName in CKEDITOR.instances) {
+                $('#' + instanceName).val(CKEDITOR.instances[instanceName].getData());
+            }
+        }\n";
+        $contents_file=preg_replace($pattern,$replace,$contents_file);
+    }   
+    return $contents_file;
+}
+/*
+Nếu site của bạn hiện ở phiên bản nhỏ hơn 4.3.02 và sử dụng giao diện không phải mặc định thì thực hiện cập nhật theo hướng dẫn sau
+
+Tìm trong file: themes/my_theme/js/main.js:
+window.location.href = location.reload()
+Nếu có thay bằng
+
+location.reload()
+*/
+function updateFileJsReload($contents_file)
+{
+    $pattern = '/(\s+|\n+)window.location.href\s*=\s*location.reload\(\s*\)/';
+    $replace="\nlocation.reload()\n";
+    $contents_file=preg_replace($pattern,$replace,$contents_file);
+    return $contents_file;
+}
+/*
+Nếu giao diện của bạn tồn tại themes/my_theme/modules/contact/form.tpl
+Mở form.tpl tìm
+<div class="form-group">
+    <label><input type="checkbox" name="sendcopy" value="1" checked="checked" /><span>{LANG.sendcopy}</span></label>
+</div>
+Thêm lên trên
+
+        <!-- BEGIN: sendcopy -->
+Thêm xuống dưới
+
+        <!-- END: sendcopy -->
+*/
+function updateFileContactForm($contents_file)
+{
+    $pattern = '/<!--\s+BEGIN:\s+sendcopy\s+-->/';
+    if (!preg_match($pattern,$contents_file,$m)) {
+        $pattern = '/<div\s+class\s*=\s*"\s*form-group\s*">\n*\s*<label>\n*\s*<input\s+type\s*=\s*"checkbox"\s+name\s*=\s*"sendcopy"\s+value\s*=\s*"1"\s+checked\s*=\s*"\s*checked\s*"\s*\/>\n*\s*<span>\n*\s*\{LANG.sendcopy\}\n*\s*<\/span>\n*\s*<\/label>\n*\s*<\/div>/';
+        $replace="<!-- BEGIN: sendcopy -->\n<div class=\"form-group\">
+        <label><input type=\"checkbox\" name=\"sendcopy\" value=\"1\" checked=\"checked\" /><span>{LANG.sendcopy}</span></label>
+    </div>\n<!-- END: sendcopy -->";
+        $contents_file=preg_replace($pattern,$replace,$contents_file);
+    }   
+    return $contents_file;
+}
+function updateResult($file,$funcs)
+{
+    global $array_files_update;
+    $key=str_replace(NV_ROOTDIR,"",$file);
+    if (empty($array_files_update[$key])) {
+        $array_files_update[$key]=array(
+            'funcs'=>array()
+        );
+    }
+    $array_files_update[$key]['funcs'][]=$funcs;
+}
 $page_title = $module_info['custom_title'];
 $key_words = $module_info['keywords'];
 
@@ -25,7 +363,6 @@ if (empty($theme_update)) {
         $theme_update = $list_theme[0];
     }
 }
-
 if (empty($theme_update)) {
     $contents = nv_theme_alert('Không có giao diện để cập nhật', 'Bạn chưa copy giao diện cần cập nhật vào đúng thư mục đã quy định, vui lòng thực hiện thao tác đó trước.', 'danger');
     include NV_ROOTDIR . '/includes/header.php';
@@ -49,283 +386,119 @@ $array_update_result = array();
 
 $num_section_auto = 0;
 $num_section_manual = 0;
-
 if ($nv_Request->isset_request('submit', 'post')) {
     // Xác định danh sách các file
     $files = list_all_file(NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update, NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update);
-
-    $array_update_result = array(
-        /*
-        title => Tên
-        note
-        files => array(
-            'filekey' => array(
-                'name' => Tên file
-                'data' => array(
-                    'find'
-                    'replace'
-                    'status'
-                    'guide' array(
-                        'find'
-                        'replace'
-                    )
-                    'type' html js php
-                )
-            )
-        )
-        */
-    );
-
-    $array_update_result['base'] = array('title' => 'Cập nhật giao diện chính', 'note' => '', 'files' => array());
-    $array_update_result['comment'] = array('title' => 'Cập nhật giao diện module comment', 'note' => '', 'files' => array());
-    $array_update_result['news'] = array('title' => 'Cập nhật giao diện module news', 'note' => '', 'files' => array());
-    $array_update_result['page'] = array('title' => 'Cập nhật giao diện module page', 'note' => '', 'files' => array());
-    $array_update_result['statistics'] = array('title' => 'Cập nhật giao diện module statistics', 'note' => '', 'files' => array());
-    $array_update_result['users'] = array('title' => 'Cập nhật giao diện module users', 'note' => '', 'files' => array());
-
     foreach ($files as $file) {
-        $contents_file = file_get_contents($file);
-        $output_data = $contents_file;
-        $file_key = md5(strtolower($file));
-
-        if (preg_match('/\/modules\/comment\//', $file) or preg_match('/\/comment\.js$/', $file)) {
-            require (NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/comment.php');
-        } elseif (preg_match('/\/modules\/news\//', $file) or preg_match('/\/news\.js$/', $file) or preg_match('/\/news\.css$/', $file)) {
-            require (NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/news.php');
-        } elseif (preg_match('/\/modules\/page\//', $file) or preg_match('/\/page\.js$/', $file)) {
-            require (NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/page.php');
-        } elseif (preg_match('/\/modules\/statistics\//', $file) or preg_match('/\/statistics\.js$/', $file)) {
-            require (NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/statistics.php');
-        } elseif (preg_match('/\/modules\/users\//', $file) or preg_match('/\/users\.js$/', $file) or preg_match('/\/users\.css$/', $file)) {
-            require (NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/users.php');
-        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/theme\.php$/', $file)) {
-            nv_get_update_result('base');
-            nvUpdateContructItem('base', 'php');
-
-            if (preg_match("/function[\s]*nv\_site\_theme[\s]*\([\s]*\\\$contents([^\)]+)\)[\s\n\t\r]*\{[\s\n\t\r]*global \\$([a-zA-Z0-9\_\,\s\\$]+)\;/i", $output_data, $m)) {
-                $m[2] = '$' . $m[2];
-                $array_variable = array_map('trim', explode(',', $m[2]));
-                if (!in_array('$nv_plugin_area', $array_variable)) {
-                    $array_variable[] = '$nv_plugin_area';
-                }
-                $array_variable = 'global ' . implode(', ', $array_variable) . ';';
-
-                $find = $m[0];
-                $replace = "function nv_site_theme(\$contents" . $m[1] . ")\n{\n    " . $array_variable;
-
-                $output_data = str_replace($find, $replace, $output_data);
-                nvUpdateSetItemData('base', array(
-                    'status' => 1,
-                    'find' => $find,
-                    'replace' => $replace,
-                ));
-            } else {
-                nvUpdateSetItemGuide('base', array(
-                    'find' => 'global $home, $array_mod_title, $lang_global, $language_array',
-                    'replaceMessage' => 'Trong dòng đó thêm vào cuối trước dấu <code>;</code>',
-                    'replace' => ', $nv_plugin_area'
-                ));
+        if (preg_match('/\/'.$theme_update.'\/layout\/header_extended.tpl$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileBreadcrumb($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFileBreadcrumb');
+                file_put_contents($file, $output_data, LOCK_EX);
             }
-
-            nvUpdateContructItem('base', 'php');
-
-            if (preg_match("/\\\$xtpl[\s]*\=[\s]*new[\s]*XTemplate[\s]*\([\s]*\\\$layout_file[\s]*\,[\s]*NV\_ROOTDIR([^\n]+)/i", $output_data, $m)) {
-                $find = $m[0];
-                $replace = 'if (isset($nv_plugin_area[4])) {
-        // Kết nối với các plugin sau khi xây dựng nội dung module
-        foreach ($nv_plugin_area[4] as $_fplugin) {
-            include NV_ROOTDIR . \'/includes/plugin/\' . $_fplugin;
+        }
+        else if (preg_match('/\/'.$theme_update.'\/theme.php$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileTheme($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFileTheme');
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
+        }
+        else if (preg_match('/\/'.$theme_update.'\/modules\/news\/detail.tpl$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileNewsDetail($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFileNewsDetail');
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
+        }
+        else if (preg_match('/\/'.$theme_update.'\/modules\/page\/block.about.tpl$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFilePageBlockAbout($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFilePageBlockAbout');
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
+        }
+        else if (preg_match('/\/'.$theme_update.'\/modules\/users\/block.login.tpl$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileUserBlockLogin($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFileUserBlockLogin');
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
+        }
+        else if (preg_match('/\/'.$theme_update.'\/modules\/users\/block.user_button.tpl$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileUserBlockLogin($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFileUserBlockLogin');
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
+        }
+        else if (preg_match('/\/'.$theme_update.'\/modules\/contact\/form.tpl$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileContactForm($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFileContactForm');
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
+        }
+        else if (preg_match('/\/'.$theme_update.'\/config.php$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileConfig($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFileConfig');
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
+        }
+        else if (preg_match('/\/'.$theme_update.'\/js\/users.js$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileUsersJs($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFileUsersJs');
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
+        }
+        if (preg_match('/\.tpl$/',$file,$m)) {
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileGooglePlus($contents_file);
+            if ($contents_file != $output_data) {
+                updateResult($file,'updateFileGooglePlus');
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
+        }
+        if (preg_match('/\.js$/',$file,$m)) {
+            $put_file=false;
+            $contents_file = file_get_contents($file);
+            $output_data = updateFileJsGooglePlus($contents_file);
+            if ($contents_file != $output_data) {
+                $put_file=true;
+                updateResult($file,'updateFileJsGooglePlus');
+            }
+            $contents_file=$output_data;
+            $output_data = updateFileJsReload($output_data);
+            if ($contents_file != $output_data) {
+                $put_file=true;
+                updateResult($file,'updateFileJsReload');
+            }
+            if ($put_file) {
+                file_put_contents($file, $output_data, LOCK_EX);
+            }
         }
     }
-
-    ' . $m[0];
-                $output_data = str_replace($find, $replace, $output_data);
-                nvUpdateSetItemData('base', array(
-                    'status' => 1,
-                    'find' => $find,
-                    'replace' => $replace
-                ));
-            } else {
-                nvUpdateSetItemGuide('base', array(
-                    'find' => '    $xtpl = new XTemplate($layout_file, NV_ROOTDIR . \'/themes/\' . $global_config[\'module_theme\'] . \'/layout\');',
-                    'addbefore' => '    if (isset($nv_plugin_area[4])) {
-        // Kết nối với các plugin sau khi xây dựng nội dung module
-        foreach ($nv_plugin_area[4] as $_fplugin) {
-            include NV_ROOTDIR . \'/includes/plugin/\' . $_fplugin;
+    $xtpl->assign('NUM_SECTION_AUTO', count($array_files_update));
+    foreach ($array_files_update as $k=>$value) {
+        $xtpl->assign('FILE_NAME', $k);
+        foreach ($value['funcs'] as $v) {
+            $xtpl->assign('FUNC', $v);
+            $xtpl->parse('main.thongke.file.func');
         }
+        $xtpl->parse('main.thongke.file');
     }
-
-'
-                ));
-            }
-        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/blocks\/([a-zA-Z0-9\.\-\_]+)\.php$/', $file, $parseBlock)) {
-            $isContructed = false;
-
-            // Kiểm tra xem block có cấu hình không
-            if (file_exists(NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update . '/blocks/' . $parseBlock[1] . '.ini')) {
-                $xml = simplexml_load_file(NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update . '/blocks/' . $parseBlock[1] . '.ini');
-                if ($xml !== false) {
-                    $submit_function = trim($xml->submitfunction);
-                    if (!empty($submit_function)) {
-                        // Nếu có cấu hình thì replace phần cấu hình
-                        // Phần này tạm bỏ, cần làm bằng tay
-                        /*
-                        unset($m);
-                        preg_match_all("/\\$([a-zA-Z0-9\_]+)[\s]*(\.*)\=[\s]*('|\")\<(\/*)tr\>('|\")[\s]*\;/i", $output_data, $m);
-                        if (!empty($m[1])) {
-                            foreach ($m[1] as $k => $v) {
-                                $find = $m[0][$k];
-                                $replace = '$' . $m[1][$k] . ' ' . $m[2][$k] . '= \'<' . (empty($m[4][$k]) ? 'div class="form-group"' : '/div') . '>\';';
-                                $output_data = str_replace($find, $replace, $output_data);
-                            }
-                        }
-                        */
-                        $isContructed = true;
-                        nv_get_update_result('base');
-                        nvUpdateContructItem('base', 'html');
-                        nvUpdateSetItemGuide('base', array(
-                            'findMessage' => 'Lúc trước khi xuất ra HTML, phần cấu hình block thường viết dạng',
-                            'find' => '<tr>
-    <td>Phần tiêu đề</td>
-    <td>Phần input</td>
-</tr>',
-                            'replaceMessage' => 'Cần sửa lại thành',
-                            'replace' => '<div class="form-group">
-    <label class="control-label col-sm-6">Phần tiêu đề:</label>
-    <div class="col-sm-18">Phần input</div>
-</div>'
-                        ));
-                    }
-                }
-            }
-
-            // Chỉnh lại câu query của news cat
-            if (preg_match("/\\\$sql[\s]*\=[\s]*('|\")SELECT[\s]*catid([^\;]+)\;/i", $output_data, $m)) {
-                if (!$isContructed) {
-                    nv_get_update_result('base');
-                }
-                nvUpdateContructItem('base', 'php');
-                $find = $m[0];
-                $replace = str_replace('inhome', 'status', $m[0]);
-                $output_data = str_replace($find, $replace, $output_data);
-                nvUpdateSetItemData('base', array(
-                    'status' => 1,
-                    'find' => $find,
-                    'replace' => $replace,
-                ));
-            }
-
-            // Kiểm tra tiếp còn trường inhome thì cảnh báo
-            if (preg_match("/inhome/i", $output_data, $m)) {
-                if (!$isContructed) {
-                    nv_get_update_result('base');
-                }
-                nvUpdateContructItem('base', 'html');
-                nvUpdateSetItemGuide('base', array(
-                    'find' => 'Những chỗ sử dụng trường inhome ở bảng cat',
-                    'replace' => 'Đổi thành status với:
-
-inhome = 1 => status = 1;
-inhome = 0 => status = 2;'
-                ));
-            }
-        }
-
-        if ($contents_file != $output_data) {
-            file_put_contents($file, $output_data, LOCK_EX);
-        }
-    }
-
-    $storage_file = NV_UPLOADS_DIR . '/' . $module_upload . '/' . $op . '.htm';
-
-    $xtpl->assign('NUM_SECTION_AUTO', number_format($num_section_auto, 0, ',', '.'));
-    $xtpl->assign('NUM_SECTION_MANUAL', number_format($num_section_manual, 0, ',', '.'));
-    $xtpl->assign('FILE_STORAGE', NV_BASE_SITEURL . $storage_file);
-
-    foreach ($array_update_result as $result) {
-        $xtpl->assign('PARA_NAME', $result['title']);
-
-        // Ghi chú cập nhật cho đoạn
-        if (!empty($result['note'])) {
-            $xtpl->assign('PARA_NOTE', $result['note']);
-            $xtpl->parse('main.result.loop.note');
-        }
-
-        if (empty($result['files'])) {
-            $xtpl->parse('main.result.loop.empty');
-        } else {
-            foreach ($result['files'] as $fileData) {
-                $xtpl->assign('FILE_NAME', $fileData['name']);
-
-                foreach ($fileData['data'] as $section) {
-                    $section['find'] = nv_htmlspecialchars(str_replace(array("\t"), array("    "), $section['find']));
-                    $section['replace'] = nv_htmlspecialchars(str_replace(array("\t"), array("    "), $section['replace']));
-
-                    $xtpl->assign('SECTION', $section);
-
-                    if (!empty($section['status'])) {
-                        $xtpl->parse('main.result.loop.data.loop.section.is_auto');
-                    } else {
-                        $guide = $section['guide'];
-                        $guide['find'] = !empty($guide['find']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['find']))) : '';
-                        $guide['replace'] = !empty($guide['replace']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['replace']))) : '';
-                        $guide['addbefore'] = !empty($guide['addbefore']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['addbefore']))) : '';
-                        $guide['addafter'] = !empty($guide['addafter']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['addafter']))) : '';
-                        $guide['delinline'] = !empty($guide['delinline']) ? nv_htmlspecialchars(preg_replace("/^\n(.*?)                    $/is", "\\1", str_replace(array("\t"), array("    "), $guide['delinline']))) : '';
-                        $guide['findMessage'] = !empty($guide['findMessage']) ? $guide['findMessage'] : 'Tìm';
-                        $guide['replaceMessage'] = !empty($guide['replaceMessage']) ? $guide['replaceMessage'] : 'Thay bằng';
-                        $guide['addbeforeMessage'] = !empty($guide['addbeforeMessage']) ? $guide['addbeforeMessage'] : 'Thêm lên trên';
-                        $guide['addafterMessage'] = !empty($guide['addafterMessage']) ? $guide['addafterMessage'] : 'Thêm xuống dưới';
-                        $guide['delinlineMessage'] = !empty($guide['delinlineMessage']) ? $guide['delinlineMessage'] : 'Trong đoạn đó xóa';
-
-                        $xtpl->assign('GUIDE', $guide);
-
-                        if (!empty($guide['find'])) {
-                            $xtpl->parse('main.result.loop.data.loop.section.no_auto.find');
-                        }
-                        if (!empty($guide['replace'])) {
-                            $xtpl->parse('main.result.loop.data.loop.section.no_auto.replace');
-                        }
-                        if (!empty($guide['addbefore'])) {
-                            $xtpl->parse('main.result.loop.data.loop.section.no_auto.addbefore');
-                        }
-                        if (!empty($guide['delinline'])) {
-                            $xtpl->parse('main.result.loop.data.loop.section.no_auto.delinline');
-                        }
-                        if (!empty($guide['addafter'])) {
-                            $xtpl->parse('main.result.loop.data.loop.section.no_auto.addafter');
-                        }
-
-                        $xtpl->parse('main.result.loop.data.loop.section.no_auto');
-                    }
-
-                    $xtpl->parse('main.result.loop.data.loop.section');
-                }
-
-                $xtpl->parse('main.result.loop.data.loop');
-            }
-
-            $xtpl->parse('main.result.loop.data');
-        }
-
-        $xtpl->parse('main.result.loop');
-    }
-
-    $xtpl->parse('main.result');
-
-    if (file_exists(NV_ROOTDIR . '/' . $storage_file)) {
-        nv_deletefile(NV_ROOTDIR . '/' . $storage_file);
-    }
-
-    $xtpl1 = new XTemplate('save.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
-    $xtpl1->assign('NV_BASE_SITEURL', NV_BASE_SITEURL);
-    $xtpl1->assign('NV_ASSETS_DIR', NV_ASSETS_DIR);
-    $xtpl1->assign('CONTENTS', $xtpl->text('main.result'));
-
-    $xtpl1->parse('main');
-    $file_text = $xtpl1->text('main');
-
-    file_put_contents(NV_ROOTDIR . '/' . $storage_file, $file_text, LOCK_EX);
+    $xtpl->parse('main.thongke');
 } else {
     $xtpl->parse('main.form');
 }

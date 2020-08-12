@@ -13,7 +13,27 @@ $(function() {
 });
 </script>
 <!-- END: form -->
+<!-- BEGIN: thongke -->
+<div class="alert alert-success">
+Tự động cập nhật giao diện thành công, dưới đây là các thông tin cần chú ý.<br />
+- Tổng số file đã tự động cập nhật: <strong>{NUM_SECTION_AUTO}</strong><br />
+</div>
+<div>
+    <h2 style="margin:15px 0px; color:#fff; padding:10px; background-color:#428bca"><strong>Các file đã được rửa chữa</strong></h2>
+    <!-- BEGIN: file -->
+    <div style="border-bottom:1px dashed #000;margin-bottom: 20px;">
+        <p><strong>Tên file: </strong>{FILE_NAME}</p>
+        <p>Đã đã được sửa bởi các chức năng sau</p>
+        <ul>
+            <!-- BEGIN: func -->
+            <li>{FUNC}</li>
+            <!-- END: func -->
+        </ul>
+    </div>
+    <!-- END: file -->
+</div>
 
+<!-- END: thongke -->
 <!-- BEGIN: result -->
 <div class="alert alert-success">
 Tự động cập nhật giao diện thành công, dưới đây là các thông tin cần chú ý.<br />
