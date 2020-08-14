@@ -610,11 +610,6 @@ if ($nv_Request->isset_request('submit', 'post')) {
         'note' => "Chỉ ở file: themes/ten-themes/config.php", 
         'files' => array()
     );
-    /* $array_update_result['contact'] = array(
-        'title' => 'giao diện của bạn tồn tại themes/my_theme/modules/contact/form.tpl', 
-        'note' => "Chỉ ở file: themes/my_theme/modules/contact/form.tpl", 
-        'files' => array()
-    ); */
     $array_update_result['googleplus'] = array(
         'title' => 'Xóa bỏ tích hợp web Google+ ở file tpl', 
         'note' => "Chỉ ở file: themes/my_theme/modules/news/detail.tpl\nhemes/my_theme/modules/page/main.tpl\nthemes/mobile_my_theme/modules/news/detail.tpl", 
