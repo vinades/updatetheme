@@ -97,25 +97,23 @@ h3.newh3 {
     if (!preg_match("/nv\_theme\_viewpdf[\s]*\(/i", $output_data)) {
         nvUpdateContructItem('news', 'php');
         $replace = '
-/**
- * nv_theme_viewpdf()
- *
- * @param mixed $file_url
- * @return
- */
-function nv_theme_viewpdf($file_url)
-{
-    global $lang_module, $lang_global;
-    $xtpl = new XTemplate(\'viewer.tpl\', NV_ROOTDIR . \'/\' . NV_ASSETS_DIR . \'/js/pdf.js\');
-    $xtpl->assign(\'LANG\', $lang_module);
-    $xtpl->assign(\'GLANG\', $lang_global);
-    $xtpl->assign(\'PDF_JS_DIR\', NV_BASE_SITEURL . NV_ASSETS_DIR . \'/js/pdf.js/\');
-    $xtpl->assign(\'PDF_URL\', $file_url);
-    $xtpl->parse(\'main\');
-    return $xtpl->text(\'main\');
-}
-
-';
+            /**
+             * nv_theme_viewpdf()
+             *
+             * @param mixed $file_url
+             * @return
+             */
+            function nv_theme_viewpdf($file_url)
+            {
+                global $lang_module, $lang_global;
+                $xtpl = new XTemplate(\'viewer.tpl\', NV_ROOTDIR . \'/\' . NV_ASSETS_DIR . \'/js/pdf.js\');
+                $xtpl->assign(\'LANG\', $lang_module);
+                $xtpl->assign(\'GLANG\', $lang_global);
+                $xtpl->assign(\'PDF_JS_DIR\', NV_BASE_SITEURL . NV_ASSETS_DIR . \'/js/pdf.js/\');
+                $xtpl->assign(\'PDF_URL\', $file_url);
+                $xtpl->parse(\'main\');
+                return $xtpl->text(\'main\');
+            }';
         $output_data = trim($output_data) . "\n\n" . $replace;
         nvUpdateSetItemData('news', array(
             'status' => 1,
@@ -161,8 +159,7 @@ function nv_theme_viewpdf($file_url)
             }
             $xtpl->parse(\'main.files.loop\');
         }
-        $xtpl->parse(\'main.files\');
-    }';
+        $xtpl->parse(\'main.files\');}';
         $output_data = str_replace($find, $replace, $output_data);
         nvUpdateSetItemData('news', array(
             'status' => 1,

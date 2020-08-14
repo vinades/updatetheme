@@ -43,7 +43,7 @@ Tự động cập nhật giao diện thành công, dưới đây là các thôn
 </div>
 
 <!-- BEGIN: loop -->
-<h1 class="margin-bottom">{PARA_NAME}:</h1>
+<h1 class="margin-bottom" style="background-color:#d9edf7;padding:10px">{PARA_NAME}:</h1>
 
 <!-- BEGIN: note -->
 <div class="alert alert-info">{PARA_NOTE}</div>
