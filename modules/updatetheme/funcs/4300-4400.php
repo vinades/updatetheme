@@ -320,10 +320,10 @@ function updateFileConfig($contents_file)
     $pattern = '/\$gfonts\s*=\s*new\s+NukeViet\\\Client\\\Gfonts\(\);/';
     if (!preg_match($pattern,$contents_file,$m)) {
         $status = true;
-        $pattern = '/\s*[^\w\d]\$nv_Cache->delMod\(\s*\'settings\s*\'\)\s*;\s*/';
+        $pattern = '/\s*[^\w\d]\$nv_Cache->delMod\(\s*\'settings\s*\'\)\s*;/';
         $replace =  "\n".str_repeat(" ",4)."\$nv_Cache->delMod('settings');";
         $replace .= "\n".str_repeat(" ",4)."\$gfonts = new NukeViet\\Client\\Gfonts();";
-        $replace .= "\n".str_repeat(" ",4)."\$gfonts->destroyAll();\n";
+        $replace .= "\n".str_repeat(" ",4)."\$gfonts->destroyAll();";
         $contents_file = preg_replace($pattern,$replace,$contents_file);
     }
     $replace = '$nv_Cache->delMod(\'settings\');
