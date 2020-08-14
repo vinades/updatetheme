@@ -8,8 +8,10 @@
  * @Createdate Thu, 09 Jan 2014 10:18:48 GMT
  */
 
-if (!defined('NV_IS_MOD_UPDATETHEME'))
+if (!defined('NV_IS_MOD_UPDATETHEME')) {
     die('Stop!!!');
+}
+    
 $array_files_update = array();
 /*
 Chuyển breadcrumb từ vocabulary sang schema.org
