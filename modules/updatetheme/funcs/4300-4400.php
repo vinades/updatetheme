@@ -519,10 +519,12 @@ function updateFileContactForm($contents_file)
         'replace'=>$replace
     );
 }
-function updateResult($file,$key,$output_data)
+function updateResult($file,$key,$output_data,$contents_file,$item_type = 'php')
 {
     if (empty($key)) return false;
-    if ($output_data['status']) {
+    nv_get_update_result($key);
+    nvUpdateContructItem($key, $item_type);
+    if ($output_data['status'] && $output_data['content'] != $contents_file) {
         nvUpdateSetItemData($key, array(
             'status' => 1,
             'find' => $output_data['find'],
@@ -636,75 +638,66 @@ if ($nv_Request->isset_request('submit', 'post')) {
         $file_key = md5(strtolower($file));
         if (preg_match('/\/'.$theme_update.'\/layout\/header_extended\.tpl$/',$file,$m)) {
             $key="header";
-            nv_get_update_result($key);
-            nvUpdateContructItem($key, 'tpl');
+            $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileBreadcrumb($contents_file);
-            updateResult($file,$key,$output_data);
+            updateResult($file,$key,$output_data,$contents_file, $item_type);
         }
         if (preg_match('/\/'.$theme_update.'\/theme\.php$/',$file,$m)) {
-            $key="theme";
-            nv_get_update_result($key);
-            nvUpdateContructItem($key,  'php');
+            $key= "theme" ;
+            $$item_type = "php";
             $contents_file = file_get_contents($file);
             $output_data = updateFileTheme($contents_file);
-            updateResult($file,$key,$output_data);
+            updateResult($file,$key,$output_data,$contents_file, $item_type);
         }
         if (preg_match('/\/'.$theme_update.'\/modules\/news\/detail\.tpl$/',$file,$m)) {
             $key="news";
-            nv_get_update_result($key);
-            nvUpdateContructItem($key, 'tpl');
+            $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileNewsDetail($contents_file);
-            updateResult($file,$key,$output_data);
+            updateResult($file,$key,$output_data,$contents_file, $item_type);
         }
         if (preg_match('/\/'.$theme_update.'\/modules\/page\/block.about\.tpl$/',$file,$m)) {
             $key="page";
-            nv_get_update_result($key);
-            nvUpdateContructItem($key, 'tpl');
+            $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFilePageBlockAbout($contents_file);
-            updateResult($file,$key,$output_data);
+            updateResult($file,$key,$output_data,$contents_file, $item_type);
         }
         if (preg_match('/\/'.$theme_update.'\/modules\/users\/block.login\.tpl$/',$file,$m)) {
             $key="users";
-            nv_get_update_result($key);
-            nvUpdateContructItem($key, 'tpl');
+            $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileUserBlockLogin($contents_file);
-            updateResult($file,$key,$output_data);
+            updateResult($file,$key,$output_data,$contents_file, $item_type);
         }
         if (preg_match('/\/'.$theme_update.'\/modules\/users\/block.user_button\.tpl$/',$file,$m)) {
             $key="users";
-            nv_get_update_result($key);
-            nvUpdateContructItem($key, 'tpl');
+            $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileUserBlockLogin($contents_file);
-            updateResult($file,$key,$output_data);
+            updateResult($file,$key,$output_data,$contents_file, $item_type);
         }
         if (preg_match('/\/'.$theme_update.'\/modules\/contact\/form\.tpl$/',$file,$m)) {
             $key="version4300";
-            nv_get_update_result($key);
-            nvUpdateContructItem($key, 'tpl');
+            $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileContactForm($contents_file);
-            updateResult($file,$key,$output_data);
+            updateResult($file,$key,$output_data,$contents_file, $item_type);
         }
         if (preg_match('/\/'.$theme_update.'\/config\.php$/',$file,$m)) {
             $key="config";
-            nv_get_update_result($key);
-            nvUpdateContructItem($key, 'php');
+            $item_type = 'php';
             $contents_file = file_get_contents($file);
             $output_data = updateFileConfig($contents_file);
-            updateResult($file,$key,$output_data);
+            updateResult($file,$key,$output_data,$contents_file, $item_type);
         }
         if (preg_match('/\/'.$theme_update.'\/js\/users\.js$/',$file,$m)) {
             $key="CKEDITOR";
-            nv_get_update_result($key);
-            nvUpdateContructItem($key, 'js');
+            $item_type = 'js';
             $contents_file = file_get_contents($file);
             $output_data = updateFileUsersJs($contents_file);
-            updateResult($file,$key,$output_data);
+            updateResult($file,$key,$output_data,$contents_file, $item_type);
         }
         
         if (preg_match('/\.tpl$/',$file,$m)) {
@@ -716,9 +709,7 @@ if ($nv_Request->isset_request('submit', 'post')) {
                 || preg_match('\/modules\/news\/detail\.tpl$/',$file,$m)
                 || preg_match('\/modules\/page\/main\.tpl$/',$file,$m)
                 ) {
-                    nv_get_update_result($key);
-                    nvUpdateContructItem($key, 'js');
-                    updateResult($file,$key,$output_data);
+                    updateResult($file,$key,$output_data,$contents_file, $item_type);
             }
         }
 
@@ -730,9 +721,7 @@ if ($nv_Request->isset_request('submit', 'post')) {
                 $output_data['status'] 
                 || preg_match('/\/js\/main\.js$/',$file,$m)
             ) {
-                nv_get_update_result($key);
-                nvUpdateContructItem($key, 'js');
-                updateResult($file,$key,$output_data);
+                updateResult($file,$key,$output_data,$contents_file, $item_type);
             }
             
             $key="version4300";
@@ -742,9 +731,7 @@ if ($nv_Request->isset_request('submit', 'post')) {
                 $output_data['status'] 
                 || preg_match('/\/js\/main\.js$/',$file,$m)
             ) {
-                nv_get_update_result($key);
-                nvUpdateContructItem($key, 'js');
-                updateResult($file,$key,$output_data);
+                updateResult($file,$key,$output_data,$contents_file, $item_type);
             }
         }
     }
