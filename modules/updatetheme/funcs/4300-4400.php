@@ -12,7 +12,6 @@ if (!defined('NV_IS_MOD_UPDATETHEME')) {
     die('Stop!!!');
 }
     
-$array_files_update = array();
 /*
 Chuyển breadcrumb từ vocabulary sang schema.org
 
@@ -81,8 +80,8 @@ function updateFileBreadcrumb($contents_file)
         <!-- END: loop -->
     </ul>';
     $pattern = '/<ul\s+class\s*=\s*"((.*\s+)?temp-breadcrumbs\s+(.*\s+)?hidden([^"]*\s*)?)"\s*>[\s\S]*?<\/ul>/';
-    preg_match_all($pattern, $contents_file,$match);
-    if (!empty($match[0])) {
+    // preg_match_all($pattern, $contents_file,$match);
+    if (preg_match_all($pattern, $contents_file,$match)) {
         $status = true;
         foreach ($match[0] as $k=>$tag) {
             $rs = "\n".str_repeat(" ",36)."<ul class = \"".$match[1][$k]."\" itemscope itemtype = \"https://schema.org/BreadcrumbList\">";
@@ -91,14 +90,20 @@ function updateFileBreadcrumb($contents_file)
             $tag = preg_replace('/itemprop\s*=\s*"\s*title\s*"/','itemprop = "name"',$tag);
             preg_match_all('/<li\s+([^>]*)>([\s\S]*?)<\/li>/', $tag,$match1);
             foreach ($match1[0] as $k1=>$tag1){
-                $rs.=  "\n".str_repeat(" ",40)."<li itemprop = \"itemListElement\" ".$match1[1][$k1].">";
-                $rs.= "\n".str_repeat(" ",44).$match1[2][$k1];
+                if ($k1 == count($match1[0])-1) {
+                    $rs .="\n".str_repeat(" ",40)."<!-- BEGIN: loop -->";
+                }
+                $rs.= "\n".str_repeat(" ",40)."<li itemprop = \"itemListElement\" ".$match1[1][$k1].">";
+                $rs.= $match1[2][$k1];
                 if ($k1 == 0) {
-                    $rs.= "\n".str_repeat(" ",48).'<i class = "hidden" itemprop = "position" content = "1"></i>';
-                } elseif ($k1 == count($match1[0])-1) {
-                    $rs.=  "\n".str_repeat(" ",48).'<i class = "hidden" itemprop = "position" content = "{BREADCRUMBS.position}"></i>';
+                    $rs.= '<i class = "hidden" itemprop = "position" content = "1"></i>';
+                } else {
+                    $rs.= '<i class = "hidden" itemprop = "position" content = "{BREADCRUMBS.position}"></i>';
                 }
                 $rs.=  "\n".str_repeat(" ",40)."</li>";
+                if ($k1 == count($match1[0])-1) {
+                    $rs .="\n".str_repeat(" ",40)."<!-- END: loop -->";
+                }
             }
             $rs.=  "\n".str_repeat(" ",36)."</ul>";
             $contents_file = str_replace($match[0][$k],$rs,$contents_file);
@@ -129,10 +134,10 @@ function updateFileTheme($contents_file)
     $pattern = '/\s*[^\w\d]\$border = 2;\s*\n*[^\w\d]foreach\s+\(\s*\$array_mod_title_copy\s+as\s+\$arr_cat_title_i\s*\)\s+\{\s*\n*\s*\$arr_cat_title_i\[\'position\'\]\s*=\s*\$border\+\+;\s*\n*/';
     if (!preg_match($pattern,$contents_file,$m)) {
         $status = true;
-        $pattern = '/\s*[^\w\d]foreach\s+\(\s*\$array_mod_title_copy\s+as\s+\$arr_cat_title_i\s*\)\s+\{\s*/';
+        $pattern = '/\s*[^\w\d]foreach\s+\(\s*\$array_mod_title_copy\s+as\s+\$arr_cat_title_i\s*\)\s+\{/';
         $replace="\n".str_repeat(" ",16)."\$border = 2;";
         $replace.="\n".str_repeat(" ",16)."foreach (\$array_mod_title_copy as \$arr_cat_title_i) {";
-        $replace.="\n".str_repeat(" ",20)."\$arr_cat_title_i['position'] = \$border++;\n";
+        $replace.="\n".str_repeat(" ",20)."\$arr_cat_title_i['position'] = \$border++;";
         $contents_file = preg_replace($pattern,$replace,$contents_file);
     }
     $replace = "\$border = 2;\n";
@@ -322,7 +327,7 @@ function updateFileConfig($contents_file)
     $pattern = '/\$gfonts\s*=\s*new\s+NukeViet\\\Client\\\Gfonts\(\);/';
     if (!preg_match($pattern,$contents_file,$m)) {
         $status = true;
-        $pattern = '/\s*[^\w\d]\$nv_Cache->delMod\(\s*\'settings\s*\'\)\s*;/';
+        $pattern = '/\s*[^\w\d]\$nv_Cache->delMod\(\s*\'settings\'\s*\)\s*;/';
         $replace =  "\n".str_repeat(" ",4)."\$nv_Cache->delMod('settings');";
         $replace .= "\n".str_repeat(" ",4)."\$gfonts = new NukeViet\\Client\\Gfonts();";
         $replace .= "\n".str_repeat(" ",4)."\$gfonts->destroyAll();";
@@ -732,8 +737,6 @@ if ($nv_Request->isset_request('submit', 'post')) {
             }
         }
     }
-    // exit();
-    //=====================================
     $storage_file = NV_UPLOADS_DIR . '/' . $module_upload . '/' . $op . '.htm';
 
     $xtpl->assign('NUM_SECTION_AUTO', number_format($num_section_auto, 0, ',', '.'));
