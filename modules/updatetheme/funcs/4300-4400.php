@@ -11,7 +11,7 @@
 if (!defined('NV_IS_MOD_UPDATETHEME')) {
     die('Stop!!!');
 }
-    
+
 /*
 Chuyển breadcrumb từ vocabulary sang schema.org
 
@@ -80,40 +80,39 @@ function updateFileBreadcrumb($contents_file)
         <!-- END: loop -->
     </ul>';
     $pattern = '/<ul\s+class\s*=\s*"((.*\s+)?temp-breadcrumbs\s+(.*\s+)?hidden([^"]*\s*)?)"\s*>[\s\S]*?<\/ul>/';
-    // preg_match_all($pattern, $contents_file,$match);
-    if (preg_match_all($pattern, $contents_file,$match)) {
+    if (preg_match_all($pattern, $contents_file, $match)) {
         $status = true;
-        foreach ($match[0] as $k=>$tag) {
-            $rs = "\n".str_repeat(" ",36)."<ul class = \"".$match[1][$k]."\" itemscope itemtype = \"https://schema.org/BreadcrumbList\">";
-            $tag = preg_replace('/itemtype\s*=\s*"\s*http:\/\/data-vocabulary.org\/Breadcrumb\s*"/','itemtype = "https://schema.org/ListItem"',$tag);
-            $tag = preg_replace('/itemprop\s*=\s*"\s*url\s*"/','itemprop = "item"',$tag);
-            $tag = preg_replace('/itemprop\s*=\s*"\s*title\s*"/','itemprop = "name"',$tag);
-            preg_match_all('/<li\s+([^>]*)>([\s\S]*?)<\/li>/', $tag,$match1);
-            foreach ($match1[0] as $k1=>$tag1){
-                if ($k1 == count($match1[0])-1) {
-                    $rs .="\n".str_repeat(" ",40)."<!-- BEGIN: loop -->";
+        foreach ($match[0] as $k => $tag) {
+            $rs = "\n" . str_repeat(" ", 36) . "<ul class = \"" . $match[1][$k] . "\" itemscope itemtype = \"https://schema.org/BreadcrumbList\">";
+            $tag = preg_replace('/itemtype\s*=\s*"\s*http:\/\/data-vocabulary.org\/Breadcrumb\s*"/', 'itemtype = "https://schema.org/ListItem"', $tag);
+            $tag = preg_replace('/itemprop\s*=\s*"\s*url\s*"/', 'itemprop = "item"', $tag);
+            $tag = preg_replace('/itemprop\s*=\s*"\s*title\s*"/', 'itemprop = "name"', $tag);
+            preg_match_all('/<li\s+([^>]*)>([\s\S]*?)<\/li>/', $tag, $match1);
+            foreach ($match1[0] as $k1 => $tag1) {
+                if ($k1 == count($match1[0]) - 1) {
+                    $rs .= "\n" . str_repeat(" ", 40) . "<!-- BEGIN: loop -->";
                 }
-                $rs.= "\n".str_repeat(" ",40)."<li itemprop = \"itemListElement\" ".$match1[1][$k1].">";
-                $rs.= $match1[2][$k1];
+                $rs .= "\n" . str_repeat(" ", 40) . "<li itemprop = \"itemListElement\" " . $match1[1][$k1] . ">";
+                $rs .= $match1[2][$k1];
                 if ($k1 == 0) {
-                    $rs.= '<i class = "hidden" itemprop = "position" content = "1"></i>';
+                    $rs .= '<i class = "hidden" itemprop = "position" content = "1"></i>';
                 } else {
-                    $rs.= '<i class = "hidden" itemprop = "position" content = "{BREADCRUMBS.position}"></i>';
+                    $rs .= '<i class = "hidden" itemprop = "position" content = "{BREADCRUMBS.position}"></i>';
                 }
-                $rs.=  "\n".str_repeat(" ",40)."</li>";
-                if ($k1 == count($match1[0])-1) {
-                    $rs .="\n".str_repeat(" ",40)."<!-- END: loop -->";
+                $rs .=  "\n" . str_repeat(" ", 40) . "</li>";
+                if ($k1 == count($match1[0]) - 1) {
+                    $rs .= "\n" . str_repeat(" ", 40) . "<!-- END: loop -->";
                 }
             }
-            $rs.=  "\n".str_repeat(" ",36)."</ul>";
-            $contents_file = str_replace($match[0][$k],$rs,$contents_file);
+            $rs .=  "\n" . str_repeat(" ", 36) . "</ul>";
+            $contents_file = str_replace($match[0][$k], $rs, $contents_file);
         }
     }
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -132,22 +131,22 @@ function updateFileTheme($contents_file)
     $status = false;
     $find = 'foreach ($array_mod_title_copy as $arr_cat_title_i) {';
     $pattern = '/\s*[^\w\d]\$border = 2;\s*\n*[^\w\d]foreach\s+\(\s*\$array_mod_title_copy\s+as\s+\$arr_cat_title_i\s*\)\s+\{\s*\n*\s*\$arr_cat_title_i\[\'position\'\]\s*=\s*\$border\+\+;\s*\n*/';
-    if (!preg_match($pattern,$contents_file,$m)) {
+    if (!preg_match($pattern, $contents_file, $m)) {
         $status = true;
         $pattern = '/\s*[^\w\d]foreach\s+\(\s*\$array_mod_title_copy\s+as\s+\$arr_cat_title_i\s*\)\s+\{/';
-        $replace="\n".str_repeat(" ",16)."\$border = 2;";
-        $replace.="\n".str_repeat(" ",16)."foreach (\$array_mod_title_copy as \$arr_cat_title_i) {";
-        $replace.="\n".str_repeat(" ",20)."\$arr_cat_title_i['position'] = \$border++;";
-        $contents_file = preg_replace($pattern,$replace,$contents_file);
+        $replace = "\n" . str_repeat(" ", 16) . "\$border = 2;";
+        $replace .= "\n" . str_repeat(" ", 16) . "foreach (\$array_mod_title_copy as \$arr_cat_title_i) {";
+        $replace .= "\n" . str_repeat(" ", 20) . "\$arr_cat_title_i['position'] = \$border++;";
+        $contents_file = preg_replace($pattern, $replace, $contents_file);
     }
     $replace = "\$border = 2;\n";
-    $replace .="foreach (\$array_mod_title_copy as \$arr_cat_title_i) {\n";
-    $replace .= "    \$arr_cat_title_i['position'] = \$border++;\n";   
+    $replace .= "foreach (\$array_mod_title_copy as \$arr_cat_title_i) {\n";
+    $replace .= "    \$arr_cat_title_i['position'] = \$border++;\n";
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -193,21 +192,21 @@ function updateFileNewsDetail($contents_file)
     <!-- END: data_rating -->';
     $pattern = '/<!--\s+BEGIN:\s+data_rating\s+-->[\s\S]*?<!--\s+END:\s+data_rating\s+-->/';
     $replace = "<!-- BEGIN: data_rating -->";
-    $replace.= "\n".str_repeat(" ",16)."<span itemscope itemtype = \"https://schema.org/AggregateRating\">";
-    $replace.= "\n".str_repeat(" ",20)."<span class = \"hidden d-none hide\" itemprop = \"itemReviewed\" itemscope itemtype = \"https://schema.org/CreativeWorkSeries\">";
-    $replace.= "\n".str_repeat(" ",24)."<span class = \"hidden d-none hide\" itemprop = \"name\">{DETAIL.title}</span>";
-    $replace.= "\n".str_repeat(" ",20)."</span>";
-    $replace.= "\n".str_repeat(" ",20)."{LANG.rating_average}:";
-    $replace.= "\n".str_repeat(" ",20)."<span id = \"numberrating\" itemprop = \"ratingValue\">{DETAIL.numberrating}</span> -";
-    $replace.= "\n".str_repeat(" ",20)."<span id = \"click_rating\" itemprop = \"ratingCount\">{DETAIL.click_rating}</span>";
-    $replace.= "\n".str_repeat(" ",20)." {LANG.rating_count}";
-    $replace.= "\n".str_repeat(" ",20)."<span class = \"hidden d-none hide\" itemprop = \"bestRating\">5</span>";
-    $replace.= "\n".str_repeat(" ",16)."</span>";
-    $replace.= "\n".str_repeat(" ",16)."<!-- END: data_rating -->";
-    if (preg_match($pattern,$contents_file,$m)) {
+    $replace .= "\n" . str_repeat(" ", 16) . "<span itemscope itemtype = \"https://schema.org/AggregateRating\">";
+    $replace .= "\n" . str_repeat(" ", 20) . "<span class = \"hidden d-none hide\" itemprop = \"itemReviewed\" itemscope itemtype = \"https://schema.org/CreativeWorkSeries\">";
+    $replace .= "\n" . str_repeat(" ", 24) . "<span class = \"hidden d-none hide\" itemprop = \"name\">{DETAIL.title}</span>";
+    $replace .= "\n" . str_repeat(" ", 20) . "</span>";
+    $replace .= "\n" . str_repeat(" ", 20) . "{LANG.rating_average}:";
+    $replace .= "\n" . str_repeat(" ", 20) . "<span id = \"numberrating\" itemprop = \"ratingValue\">{DETAIL.numberrating}</span> -";
+    $replace .= "\n" . str_repeat(" ", 20) . "<span id = \"click_rating\" itemprop = \"ratingCount\">{DETAIL.click_rating}</span>";
+    $replace .= "\n" . str_repeat(" ", 20) . " {LANG.rating_count}";
+    $replace .= "\n" . str_repeat(" ", 20) . "<span class = \"hidden d-none hide\" itemprop = \"bestRating\">5</span>";
+    $replace .= "\n" . str_repeat(" ", 16) . "</span>";
+    $replace .= "\n" . str_repeat(" ", 16) . "<!-- END: data_rating -->";
+    if (preg_match($pattern, $contents_file, $m)) {
         $status = true;
         $find = $m[0];
-        $contents_file = preg_replace($pattern,$replace,$contents_file);
+        $contents_file = preg_replace($pattern, $replace, $contents_file);
     }
     $replace = "<!-- BEGIN: data_rating -->\n<span itemscope itemtype = \"https://schema.org/AggregateRating\">
     <span class = \"hidden d-none hide\" itemprop = \"itemReviewed\" itemscope itemtype = \"https://schema.org/CreativeWorkSeries\">
@@ -219,10 +218,10 @@ function updateFileNewsDetail($contents_file)
     <span class = \"hidden d-none hide\" itemprop = \"bestRating\">5</span>
     </span>\n<!-- END: data_rating -->";
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -248,18 +247,18 @@ function updateFilePageBlockAbout($contents_file)
     $status = false;
     $find = '<h3 class = "margin-bottom"><a title = "{TITLE}" href = "{LINK}">{TITLE}</a></h3>';
     $pattern = '/<!-- BEGIN: image -->/';
-    if (!preg_match($pattern,$contents_file,$m)) {
+    if (!preg_match($pattern, $contents_file, $m)) {
         $status = true;
         $pattern = '/<h3\s+class\s*=\s*"((.*\s+)?margin-bottom([^"]*\s*)?)"\s*>[\s\S]*?<\/h3>/';
-        preg_match_all($pattern, $contents_file,$match);
+        preg_match_all($pattern, $contents_file, $match);
         if ($h3 = $match[0][0]) {
             $replace  = "<!-- BEGIN: image -->";
             $replace .= "\n<div class = \"image pull-left\">";
-            $replace .= "\n".str_repeat(" ",4)."<a href = \"{LINK}\" title = \"{TITLE}\"> <img src = \"{IMAGE}\" alt = \"{TITLE}\" class = \"img-responsive\" /></a>";
-            $replace .= "\n</div>\n<!-- END: image -->\n".$h3;
-            $contents_file = preg_replace($pattern,$replace,$contents_file);
+            $replace .= "\n" . str_repeat(" ", 4) . "<a href = \"{LINK}\" title = \"{TITLE}\"> <img src = \"{IMAGE}\" alt = \"{TITLE}\" class = \"img-responsive\" /></a>";
+            $replace .= "\n</div>\n<!-- END: image -->\n" . $h3;
+            $contents_file = preg_replace($pattern, $replace, $contents_file);
         }
-    }   
+    }
     $replace = '<!-- BEGIN: image -->
     <div class = "image pull-left">
         <a href = "{LINK}" title = "{TITLE}"> <img src = "{IMAGE}" alt = "{TITLE}" class = "img-responsive" /></a>
@@ -269,10 +268,10 @@ function updateFilePageBlockAbout($contents_file)
         <a title = "{TITLE}" href = "{LINK}">{TITLE}</a>
     </h3>';
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -295,19 +294,19 @@ function updateFileUserBlockLogin($contents_file)
     $replace = "{NV_BASE_SITEURL}themes/{BLOCK_JS}/js/users.js";
     $pattern1 = '/\{\s*NV_BASE_SITEURL\s*\}\s*themes\s*\/\s*\{\s*BLOCK_THEME\s*\}\s*\/js\s*\/\s*users\.js\s*/';
     $pattern2 = '/\{\s*NV_BASE_SITEURL\s*\}\s*themes\s*\/\s*default\s*\/js\s*\/\s*users\.js\s*/';
-    if (preg_match($pattern1,$contents_file,$m)) {
+    if (preg_match($pattern1, $contents_file, $m)) {
         $status = true;
-        $contents_file = preg_replace($pattern1,$replace,$contents_file); 
+        $contents_file = preg_replace($pattern1, $replace, $contents_file);
     }
-    if (preg_match($pattern2,$contents_file,$m)) {
+    if (preg_match($pattern2, $contents_file, $m)) {
         $status = true;
-        $contents_file = preg_replace($pattern2,$replace,$contents_file);
+        $contents_file = preg_replace($pattern2, $replace, $contents_file);
     }
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -325,22 +324,22 @@ function updateFileConfig($contents_file)
     $status = false;
     $find = '$nv_Cache->delMod(\'settings\');';
     $pattern = '/\$gfonts\s*=\s*new\s+NukeViet\\\Client\\\Gfonts\(\);/';
-    if (!preg_match($pattern,$contents_file,$m)) {
+    if (!preg_match($pattern, $contents_file, $m)) {
         $status = true;
         $pattern = '/\s*[^\w\d]\$nv_Cache->delMod\(\s*\'settings\'\s*\)\s*;/';
-        $replace =  "\n".str_repeat(" ",4)."\$nv_Cache->delMod('settings');";
-        $replace .= "\n".str_repeat(" ",4)."\$gfonts = new NukeViet\\Client\\Gfonts();";
-        $replace .= "\n".str_repeat(" ",4)."\$gfonts->destroyAll();";
-        $contents_file = preg_replace($pattern,$replace,$contents_file);
+        $replace =  "\n" . str_repeat(" ", 4) . "\$nv_Cache->delMod('settings');";
+        $replace .= "\n" . str_repeat(" ", 4) . "\$gfonts = new NukeViet\\Client\\Gfonts();";
+        $replace .= "\n" . str_repeat(" ", 4) . "\$gfonts->destroyAll();";
+        $contents_file = preg_replace($pattern, $replace, $contents_file);
     }
     $replace = '$nv_Cache->delMod(\'settings\');
     $gfonts = new NukeViet\Client\Gfonts();
-    $gfonts->destroyAll();';   
+    $gfonts->destroyAll();';
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -360,15 +359,15 @@ function updateFileGooglePlus($contents_file)
     $find = '<div class = "g-plusone" data-size = "medium"></div>';
     $replace = 'Xóa dòng code được tìm thấy';
     $pattern = '/<div\s+class\s*=\s*"g-plusone"\s+data-size\s*=\s*"medium"\s*>\s*<\/div>\n*/';
-    if (preg_match($pattern,$contents_file,$m)) {
+    if (preg_match($pattern, $contents_file, $m)) {
         $status = true;
-        $contents_file = preg_replace($pattern,'',$contents_file);
+        $contents_file = preg_replace($pattern, '', $contents_file);
     }
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -405,15 +404,15 @@ function updateFileJsGooglePlus($contents_file)
     }());';
     $replace = 'Xóa dòng code được tìm thấy';
     $pattern = '/0\s*<\s*\$\("\.g-plusone"\).length[\S\s\n]*?\}\(\)\);/';
-    if (preg_match($pattern,$contents_file,$m)) {
+    if (preg_match($pattern, $contents_file, $m)) {
         $status = true;
-        $contents_file = preg_replace($pattern,'',$contents_file);
+        $contents_file = preg_replace($pattern, '', $contents_file);
     }
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -433,16 +432,16 @@ function updateFileUsersJs($contents_file)
     $status = false;
     $find = 'function reg_validForm(a)';
     $pattern = '/function\s+reg_validForm\(a\)\s*\n*\s*[\s\S]*?CKEDITOR/';
-    if (!preg_match($pattern,$contents_file,$m)) {
+    if (!preg_match($pattern, $contents_file, $m)) {
         $status = true;
         $pattern = '/(\s+|\n+)function\s+reg_validForm\s*\(\s*a\s*\)\s*\{/';
         $replace = "\nfunction reg_validForm(a) {";
-        $replace .= "\n".str_repeat(" ",4)."if (typeof CKEDITOR !=\"undefined\") {";
-        $replace .= "\n".str_repeat(" ",8)."for (var instanceName in CKEDITOR.instances) {";
-        $replace .= "\n".str_repeat(" ",12)."$('#' + instanceName).val(CKEDITOR.instances[instanceName].getData());";
-        $replace .= "\n".str_repeat(" ",8)."}";
-        $replace .= "\n".str_repeat(" ",4)."}\n";
-        $contents_file = preg_replace($pattern,$replace,$contents_file);
+        $replace .= "\n" . str_repeat(" ", 4) . "if (typeof CKEDITOR !=\"undefined\") {";
+        $replace .= "\n" . str_repeat(" ", 8) . "for (var instanceName in CKEDITOR.instances) {";
+        $replace .= "\n" . str_repeat(" ", 12) . "$('#' + instanceName).val(CKEDITOR.instances[instanceName].getData());";
+        $replace .= "\n" . str_repeat(" ", 8) . "}";
+        $replace .= "\n" . str_repeat(" ", 4) . "}\n";
+        $contents_file = preg_replace($pattern, $replace, $contents_file);
     }
     $replace = 'function reg_validForm(a) {
         // Xử lý các trình soạn thảo
@@ -450,12 +449,12 @@ function updateFileUsersJs($contents_file)
         for (var instanceName in CKEDITOR.instances) {
             $(\'#\' + instanceName).val(CKEDITOR.instances[instanceName].getData());
         }
-    }';   
+    }';
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -472,17 +471,17 @@ function updateFileJsReload($contents_file)
     $status = false;
     $find = 'window.location.href = location.reload()';
     $pattern = '/window.location.href\s*=\s*location.reload\(\s*\)/';
-    $replace = "\n".str_repeat(" ",12)."location.reload()";
-    if (preg_match($pattern,$contents_file,$m)) {
+    $replace = "\n" . str_repeat(" ", 12) . "location.reload()";
+    if (preg_match($pattern, $contents_file, $m)) {
         $status = true;
-        $contents_file = preg_replace($pattern,$replace,$contents_file);
+        $contents_file = preg_replace($pattern, $replace, $contents_file);
     }
     $replace = 'location.reload()';
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
 /*
@@ -504,29 +503,29 @@ function updateFileContactForm($contents_file)
     $find = '<div class = "form-group">
     <label><input type = "checkbox" name = "sendcopy" value = "1" checked = "checked" /><span>{LANG.sendcopy}</span></label>
 </div>';
-    
+
     $pattern = '/<!--\s+BEGIN:\s+sendcopy\s+-->/';
-    if (!preg_match($pattern,$contents_file,$m)) {
+    if (!preg_match($pattern, $contents_file, $m)) {
         $status = true;
         $pattern = '/<div\s+class\s*=\s*"\s*form-group\s*">\n*\s*<label>\n*\s*<input\s+type\s*=\s*"checkbox"\s+name\s*=\s*"sendcopy"\s+value\s*=\s*"1"\s+checked\s*=\s*"\s*checked\s*"\s*\/>\n*\s*<span>\n*\s*\{LANG.sendcopy\}\n*\s*<\/span>\n*\s*<\/label>\n*\s*<\/div>/';
         $replace = "<!-- BEGIN: sendcopy -->";
-        $replace .= "\n".str_repeat(" ",8)."<div class = \"form-group\">";
-        $replace .= "\n".str_repeat(" ",12)."<label><input type = \"checkbox\" name = \"sendcopy\" value = \"1\" checked = \"checked\" /><span>{LANG.sendcopy}</span></label>";
-        $replace .= "\n".str_repeat(" ",8)."</div>";
-        $replace .= "\n".str_repeat(" ",8)."<!-- END: sendcopy -->";
-        $contents_file = preg_replace($pattern,$replace,$contents_file);
+        $replace .= "\n" . str_repeat(" ", 8) . "<div class = \"form-group\">";
+        $replace .= "\n" . str_repeat(" ", 12) . "<label><input type = \"checkbox\" name = \"sendcopy\" value = \"1\" checked = \"checked\" /><span>{LANG.sendcopy}</span></label>";
+        $replace .= "\n" . str_repeat(" ", 8) . "</div>";
+        $replace .= "\n" . str_repeat(" ", 8) . "<!-- END: sendcopy -->";
+        $contents_file = preg_replace($pattern, $replace, $contents_file);
     }
     $replace = "<!-- BEGIN: sendcopy -->\n<div class = \"form-group\">
     <label><input type = \"checkbox\" name = \"sendcopy\" value = \"1\" checked = \"checked\" /><span>{LANG.sendcopy}</span></label>
-</div>\n<!-- END: sendcopy -->";   
+</div>\n<!-- END: sendcopy -->";
     return array(
-        'content'=>$contents_file,
-        'status'=>$status,
-        'find'=>$find,
-        'replace'=>$replace
+        'content' => $contents_file,
+        'status' => $status,
+        'find' => $find,
+        'replace' => $replace
     );
 }
-function updateResult($file,$key,$output_data,$contents_file,$item_type = 'php')
+function updateResult($file, $key, $output_data, $contents_file, $item_type = 'php')
 {
     if (empty($key)) return false;
     nv_get_update_result($key);
@@ -538,8 +537,7 @@ function updateResult($file,$key,$output_data,$contents_file,$item_type = 'php')
             'replace' => $output_data['replace']
         ));
         file_put_contents($file, $output_data['content'], LOCK_EX);
-    }
-    else {
+    } else {
         nvUpdateSetItemGuide($key, array(
             'find' => $output_data['find'],
             'replace' => $output_data['replace']
@@ -587,153 +585,153 @@ if ($nv_Request->isset_request('submit', 'post')) {
     // Xác định danh sách các file
     $files = list_all_file(NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update, NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update);
     $array_update_result['header'] = array(
-        'title' => 'Chuyển breadcrumb từ vocabulary sang schema.org', 
-        'note' => 'Chỉ ở file: themes/theme-cua-ban/layout/header_extended.tpl', 
+        'title' => 'Chuyển breadcrumb từ vocabulary sang schema.org',
+        'note' => 'Chỉ ở file: themes/theme-cua-ban/layout/header_extended.tpl',
         'files' => array()
     );
     $array_update_result['theme'] = array(
-        'title' => 'Chỉnh sửa ở file theme.php', 
-        'note' => 'Chỉ ở file: themes/theme-cua-ban/theme.php', 
+        'title' => 'Chỉnh sửa ở file theme.php',
+        'note' => 'Chỉ ở file: themes/theme-cua-ban/theme.php',
         'files' => array()
     );
     $array_update_result['news'] = array(
-        'title' => 'Sửa Review snippet module news', 
-        'note' => 'Chỉ ở file: themes/theme-cua-ban/modules/news/detail.tpl', 
+        'title' => 'Sửa Review snippet module news',
+        'note' => 'Chỉ ở file: themes/theme-cua-ban/modules/news/detail.tpl',
         'files' => array()
     );
     $array_update_result['page'] = array(
-        'title' => 'Thêm cấu hình số ký tự tiêu đề, giới thiệu, hiển thị ảnh cho global.page.php', 
+        'title' => 'Thêm cấu hình số ký tự tiêu đề, giới thiệu, hiển thị ảnh cho global.page.php',
         'note' => "Việc sửa này không bắt buộc, nếu không sửa thì các cấu hình của block chỉ không hiển thị hình ảnh minh họa.
-        \nChỉ ở file: themes/my_theme/modules/page/block.about.tpl", 
+        \nChỉ ở file: themes/my_theme/modules/page/block.about.tpl",
         'files' => array()
     );
     $array_update_result['users'] = array(
-        'title' => 'Sửa lỗi giao diện block global.login.php và global.user_button.php', 
-        'note' => "Chỉ ở file: themes/ten-theme/modules/users/block.login.tpl\ntheme/modules/users/block.user_button.tpl", 
+        'title' => 'Sửa lỗi giao diện block global.login.php và global.user_button.php',
+        'note' => "Chỉ ở file: themes/ten-theme/modules/users/block.login.tpl\ntheme/modules/users/block.user_button.tpl",
         'files' => array()
     );
     $array_update_result['config'] = array(
-        'title' => 'Xóa google fonts khi thay đổi thiết lập giao diện', 
-        'note' => "Chỉ ở file: themes/ten-themes/config.php", 
+        'title' => 'Xóa google fonts khi thay đổi thiết lập giao diện',
+        'note' => "Chỉ ở file: themes/ten-themes/config.php",
         'files' => array()
     );
     $array_update_result['googleplus'] = array(
-        'title' => 'Xóa bỏ tích hợp web Google+ ở file tpl', 
-        'note' => "Chỉ ở file: themes/my_theme/modules/news/detail.tpl\nhemes/my_theme/modules/page/main.tpl\nthemes/mobile_my_theme/modules/news/detail.tpl", 
+        'title' => 'Xóa bỏ tích hợp web Google+ ở file tpl',
+        'note' => "Chỉ ở file: themes/my_theme/modules/news/detail.tpl\nhemes/my_theme/modules/page/main.tpl\nthemes/mobile_my_theme/modules/news/detail.tpl",
         'files' => array()
     );
     $array_update_result['googleplusjs'] = array(
-        'title' => 'Xóa bỏ tích hợp web Google+ ở file js', 
-        'note' => "Chỉ ở file: themes/my_theme/js/main.js\nthemes/mobile_my_theme/js/main.js", 
+        'title' => 'Xóa bỏ tích hợp web Google+ ở file js',
+        'note' => "Chỉ ở file: themes/my_theme/js/main.js\nthemes/mobile_my_theme/js/main.js",
         'files' => array()
     );
     $array_update_result['CKEDITOR'] = array(
-        'title' => 'Lỗi không hiển thị trình soạn thảo', 
-        'note' => "Chỉ ở file: themes/ten_theme/js/users.js", 
+        'title' => 'Lỗi không hiển thị trình soạn thảo',
+        'note' => "Chỉ ở file: themes/ten_theme/js/users.js",
         'files' => array()
     );
     $array_update_result['version4300'] = array(
-        'title' => 'Cập nhật ở phiên bản nhỏ hơn 4.3.02', 
+        'title' => 'Cập nhật ở phiên bản nhỏ hơn 4.3.02',
         'files' => array()
     );
     foreach ($files as $file) {
         $file_key = md5(strtolower($file));
-        if (preg_match('/\/'.$theme_update.'\/layout\/header_extended\.tpl$/',$file,$m)) {
-            $key="header";
+        if (preg_match('/\/' . $theme_update . '\/layout\/header_extended\.tpl$/', $file, $m)) {
+            $key = "header";
             $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileBreadcrumb($contents_file);
-            updateResult($file,$key,$output_data,$contents_file, $item_type);
+            updateResult($file, $key, $output_data, $contents_file, $item_type);
         }
-        if (preg_match('/\/'.$theme_update.'\/theme\.php$/',$file,$m)) {
-            $key= "theme" ;
+        if (preg_match('/\/' . $theme_update . '\/theme\.php$/', $file, $m)) {
+            $key = "theme";
             $$item_type = "php";
             $contents_file = file_get_contents($file);
             $output_data = updateFileTheme($contents_file);
-            updateResult($file,$key,$output_data,$contents_file, $item_type);
+            updateResult($file, $key, $output_data, $contents_file, $item_type);
         }
-        if (preg_match('/\/'.$theme_update.'\/modules\/news\/detail\.tpl$/',$file,$m)) {
-            $key="news";
+        if (preg_match('/\/' . $theme_update . '\/modules\/news\/detail\.tpl$/', $file, $m)) {
+            $key = "news";
             $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileNewsDetail($contents_file);
-            updateResult($file,$key,$output_data,$contents_file, $item_type);
+            updateResult($file, $key, $output_data, $contents_file, $item_type);
         }
-        if (preg_match('/\/'.$theme_update.'\/modules\/page\/block.about\.tpl$/',$file,$m)) {
-            $key="page";
+        if (preg_match('/\/' . $theme_update . '\/modules\/page\/block.about\.tpl$/', $file, $m)) {
+            $key = "page";
             $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFilePageBlockAbout($contents_file);
-            updateResult($file,$key,$output_data,$contents_file, $item_type);
+            updateResult($file, $key, $output_data, $contents_file, $item_type);
         }
-        if (preg_match('/\/'.$theme_update.'\/modules\/users\/block.login\.tpl$/',$file,$m)) {
-            $key="users";
+        if (preg_match('/\/' . $theme_update . '\/modules\/users\/block.login\.tpl$/', $file, $m)) {
+            $key = "users";
             $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileUserBlockLogin($contents_file);
-            updateResult($file,$key,$output_data,$contents_file, $item_type);
+            updateResult($file, $key, $output_data, $contents_file, $item_type);
         }
-        if (preg_match('/\/'.$theme_update.'\/modules\/users\/block.user_button\.tpl$/',$file,$m)) {
-            $key="users";
+        if (preg_match('/\/' . $theme_update . '\/modules\/users\/block.user_button\.tpl$/', $file, $m)) {
+            $key = "users";
             $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileUserBlockLogin($contents_file);
-            updateResult($file,$key,$output_data,$contents_file, $item_type);
+            updateResult($file, $key, $output_data, $contents_file, $item_type);
         }
-        if (preg_match('/\/'.$theme_update.'\/modules\/contact\/form\.tpl$/',$file,$m)) {
-            $key="version4300";
+        if (preg_match('/\/' . $theme_update . '\/modules\/contact\/form\.tpl$/', $file, $m)) {
+            $key = "version4300";
             $item_type = 'tpl';
             $contents_file = file_get_contents($file);
             $output_data = updateFileContactForm($contents_file);
-            updateResult($file,$key,$output_data,$contents_file, $item_type);
+            updateResult($file, $key, $output_data, $contents_file, $item_type);
         }
-        if (preg_match('/\/'.$theme_update.'\/config\.php$/',$file,$m)) {
-            $key="config";
+        if (preg_match('/\/' . $theme_update . '\/config\.php$/', $file, $m)) {
+            $key = "config";
             $item_type = 'php';
             $contents_file = file_get_contents($file);
             $output_data = updateFileConfig($contents_file);
-            updateResult($file,$key,$output_data,$contents_file, $item_type);
+            updateResult($file, $key, $output_data, $contents_file, $item_type);
         }
-        if (preg_match('/\/'.$theme_update.'\/js\/users\.js$/',$file,$m)) {
-            $key="CKEDITOR";
+        if (preg_match('/\/' . $theme_update . '\/js\/users\.js$/', $file, $m)) {
+            $key = "CKEDITOR";
             $item_type = 'js';
             $contents_file = file_get_contents($file);
             $output_data = updateFileUsersJs($contents_file);
-            updateResult($file,$key,$output_data,$contents_file, $item_type);
+            updateResult($file, $key, $output_data, $contents_file, $item_type);
         }
-        
-        if (preg_match('/\.tpl$/',$file,$m)) {
-            $key="googleplus";
+
+        if (preg_match('/\.tpl$/', $file, $m)) {
+            $key = "googleplus";
             $contents_file = file_get_contents($file);
             $output_data = updateFileGooglePlus($contents_file);
             if (
-                $output_data['status'] 
-                || preg_match('\/modules\/news\/detail\.tpl$/',$file,$m)
-                || preg_match('\/modules\/page\/main\.tpl$/',$file,$m)
-                ) {
-                    updateResult($file,$key,$output_data,$contents_file, $item_type);
+                $output_data['status']
+                || preg_match('\/modules\/news\/detail\.tpl$/', $file, $m)
+                || preg_match('\/modules\/page\/main\.tpl$/', $file, $m)
+            ) {
+                updateResult($file, $key, $output_data, $contents_file, $item_type);
             }
         }
 
-        if (preg_match('/\.js$/',$file,$m)) {
-            $key="googleplusjs";
+        if (preg_match('/\.js$/', $file, $m)) {
+            $key = "googleplusjs";
             $contents_file = file_get_contents($file);
             $output_data = updateFileJsGooglePlus($contents_file);
             if (
-                $output_data['status'] 
-                || preg_match('/\/js\/main\.js$/',$file,$m)
+                $output_data['status']
+                || preg_match('/\/js\/main\.js$/', $file, $m)
             ) {
-                updateResult($file,$key,$output_data,$contents_file, $item_type);
+                updateResult($file, $key, $output_data, $contents_file, $item_type);
             }
-            
-            $key="version4300";
+
+            $key = "version4300";
             $contents_file = file_get_contents($file);
             $output_data = updateFileJsReload($contents_file);
             if (
-                $output_data['status'] 
-                || preg_match('/\/js\/main\.js$/',$file,$m)
+                $output_data['status']
+                || preg_match('/\/js\/main\.js$/', $file, $m)
             ) {
-                updateResult($file,$key,$output_data,$contents_file, $item_type);
+                updateResult($file, $key, $output_data, $contents_file, $item_type);
             }
         }
     }
@@ -827,7 +825,6 @@ if ($nv_Request->isset_request('submit', 'post')) {
     $file_text = $xtpl1->text('main');
 
     file_put_contents(NV_ROOTDIR . '/' . $storage_file, $file_text, LOCK_EX);
-    
 } else {
     $xtpl->parse('main.form');
 }
