@@ -59,3 +59,5 @@
 /.buildpath
 /.github
 /.settings
+/LICENSE
+/api.php

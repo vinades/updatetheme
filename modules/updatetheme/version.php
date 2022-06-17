@@ -8,18 +8,19 @@
  * @Createdate Thu, 09 Jan 2014 10:18:48 GMT
  */
 
-if (!defined('NV_MAINFILE'))
+if (!defined('NV_MAINFILE')) {
     die('Stop!!!');
+}
 
-$module_version = array(
+$module_version = [
     'name' => 'Update Theme',
-    'modfuncs' => 'main,4029-4100,4029-4102,4029-4201,4201-4300',
-    'submenu' => 'main,4029-4100,4029-4102,4029-4201,4201-4300',
+    'modfuncs' => 'main,4029-4100,4029-4102,4029-4201,4201-4300,4402-4502',
+    'submenu' => 'main,4029-4100,4029-4102,4029-4201,4201-4300,4402-4502',
     'is_sysmod' => 0,
     'virtual' => 0,
-    'version' => '4.1.02',
-    'date' => 'Wed, 03 May 2017 02:22:28 GMT',
-    'author' => 'VINADES (contact@vinades.vn)',
-    'uploads_dir' => array($module_name),
+    'version' => '4.5.02',
+    'date' => 'Friday, June 17, 2022 2:16:07 PM GMT+07:00',
+    'author' => 'VINADES <contact@vinades.vn>',
+    'uploads_dir' => [$module_name],
     'note' => ''
-);
+];

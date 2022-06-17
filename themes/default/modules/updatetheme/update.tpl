@@ -2,7 +2,7 @@
 <!-- BEGIN: form -->
 <div class="alert alert-info">Hệ thống phát hiện giao diện có giao diện <strong>{THEMEUPDATE}</strong>. Nhấp vào nút bên dưới để cập nhật ngay giao diện này.</div>
 <form method="post" action="" class="margin-bottom-lg">
-    <input type="hidden" name="submit" value="1"/>
+    <input type="hidden" name="save" value="1"/>
     <input type="submit" value="CẬP NHẬT GIAO DIỆN {THEMEUPDATE}" class="btn btn-primary btn-lg btn-block btn-submitupdate"/>
 </form>
 <script type="text/javascript">

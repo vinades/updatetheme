@@ -50,7 +50,7 @@ $array_update_result = array();
 $num_section_auto = 0;
 $num_section_manual = 0;
 
-if ($nv_Request->isset_request('submit', 'post')) {
+if ($nv_Request->isset_request('save', 'post')) {
     // Xác định danh sách các file
     $files = list_all_file(NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update, NV_ROOTDIR . '/' . NV_TEMP_DIR . '/theme-update/' . $theme_update);
     
