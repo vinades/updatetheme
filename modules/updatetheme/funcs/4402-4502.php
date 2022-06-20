@@ -111,6 +111,16 @@ if ($nv_Request->isset_request('save', 'post')) {
         'note' => '',
         'files' => array()
     );
+    $array_update_result['menu'] = array(
+        'title' => 'Cập nhật giao diện module menu',
+        'note' => '',
+        'files' => array()
+    );
+    $array_update_result['statistics'] = array(
+        'title' => 'Cập nhật giao diện module statistics',
+        'note' => '',
+        'files' => array()
+    );
     $array_update_result['banners'] = array(
         'title' => 'Cập nhật giao diện module banners',
         'note' => '',
@@ -152,23 +162,79 @@ if ($nv_Request->isset_request('save', 'post')) {
         $output_data = $contents_file;
         $file_key = md5(strtolower($file));
 
-        // Cập nhật giao diện module banners
-        if (preg_match('/\/modules\/banners\//', $file) or preg_match('/\/banners\.js$/', $file)) {
-            //require (NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/banners.php');
-        } elseif (preg_match('/\/modules\/comment\//', $file) or preg_match('/\/comment\.js$/', $file)) {
-        } elseif (preg_match('/\/modules\/contact\//', $file) or preg_match('/\/contact\.js$/', $file)) {
-        } elseif (preg_match('/\/modules\/news\//', $file) or preg_match('/\/news\.js$/', $file)) {
-        } elseif (preg_match('/\/modules\/seek\//', $file) or preg_match('/\/seek\.js$/', $file)) {
-        } elseif (preg_match('/\/modules\/users\//', $file) or preg_match('/\/users\.js$/', $file)) {
-        } elseif (preg_match('/\/modules\/voting\//', $file) or preg_match('/\/voting\.js$/', $file)) {
-        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/theme\.php$/', $file)) {
-            //
+        if (preg_match('/' . nv_preg_quote($theme_update) . '\/theme\.php$/', $file)) {
+            // theme.php
+            require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/theme.php.php';
         } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/css\/style\.css$/', $file)) {
+            // style.css
+            require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/style.css.php';
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/css\/style\.responsive\.css$/', $file)) {
+            // style.responsive.css
+            require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/style.responsive.css.php';
         } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/js\/main\.js$/', $file)) {
+            // main.js
             require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/main.js.php';
-        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/blocks\/([a-zA-Z0-9\.\-\_]+)\.php$/', $file)) {
-            // Nâng cấp các block banners của theme
-        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/system\/info\_die\.tpl$/', $file)) {
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/layout\/footer_only\.tpl$/', $file)) {
+            // footer_only.tpl
+            require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/footer_only.tpl.php';
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/layout\/header_only\.tpl$/', $file) and preg_match('/^mobile_/', $theme_update)) {
+            // header_only.tpl
+            require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/header_only.tpl.php';
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/modules\/(.*?)\/(.*?)\.tpl$/', $file, $n)) {
+            // Thay NV_BASE_SITEURL thành NV_STATIC_URL
+            unset($m);
+            $pattern = '/\{NV_BASE_SITEURL\}(\{NV_EDITORSDIR\}|themes)\/(.*?)\.([a-zA-Z0-9]+)/s';
+            preg_match_all($pattern, $output_data, $m);
+
+            if (!empty($m[1])) {
+                foreach ($m[0] as $key => $line) {
+                    nv_get_update_result($n[1]);
+                    nvUpdateContructItem($n[1], 'html');
+
+                    $find = $m[0][$key];
+                    $replace = str_replace('{NV_BASE_SITEURL}', '{NV_STATIC_URL}', $m[0][$key]);
+                    $output_data = str_replace($find, $replace, $output_data);
+
+                    nvUpdateSetItemData($n[1], [
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ]);
+                }
+            }
+
+            // File tĩnh trong assets
+            $pattern = '/\{NV_BASE_SITEURL\}\{NV_ASSETS_DIR\}\/(css|fonts|images|js|tpl)\/(.*?)\.([a-zA-Z0-9]+)/s';
+            preg_match_all($pattern, $output_data, $m);
+
+            if (!empty($m[1])) {
+                foreach ($m[0] as $key => $line) {
+                    nv_get_update_result($n[1]);
+                    nvUpdateContructItem($n[1], 'html');
+
+                    $find = $m[0][$key];
+                    $replace = str_replace('{NV_BASE_SITEURL}', '{NV_STATIC_URL}', $m[0][$key]);
+                    $output_data = str_replace($find, $replace, $output_data);
+
+                    nvUpdateSetItemData($n[1], [
+                        'status' => 1,
+                        'find' => $find,
+                        'replace' => $replace
+                    ]);
+                }
+            }
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/modules\/(.*?)\/theme\.php$/', $file, $n)) {
+            // Bắt gặp captcha ở file php
+            if (preg_match('/\.recaptcha(\'|")/is', $output_data)) {
+                nv_get_update_result($n[1]);
+                nvUpdateContructItem($n[1], 'php');
+
+                nvUpdateSetItemGuide($n[1], array(
+                    'find' => 'Đoạn code xuất captcha',
+                    'replaceMessage' => 'Đọc <a href="https://github.com/nukeviet/update/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-n%C3%A2ng-c%E1%BA%A5p-module-t%E1%BB%AB-NukeViet-4.4.02-l%C3%AAn-NukeViet-4.5.00#4-t%C3%ADch-h%E1%BB%A3p-recaptcha-v3" target="_blank"><strong class="text-info">hướng dẫn này</strong></a> và sửa theo',
+                    'replace' => 'để cập nhật đoạn code xuất captcha đó. Phần này hơi rắc rối, nên đọc kỹ và hiểu vấn đề',
+                ));
+            }
         }
 
         if ($contents_file != $output_data) {
@@ -199,8 +265,8 @@ if ($nv_Request->isset_request('save', 'post')) {
     $xtpl->assign('NUM_SECTION_MANUAL', number_format($num_section_manual, 0, ',', '.'));
     $xtpl->assign('FILE_STORAGE', NV_BASE_SITEURL . $storage_file);
 
-    foreach ($array_update_result as $result) {
-        $xtpl->assign('PARA_NAME', $result['title']);
+    foreach ($array_update_result as $result_key => $result) {
+        $xtpl->assign('PARA_NAME', empty($result['title']) ? ('Cập nhật giao diện module ' . $result_key) : $result['title']);
 
         // Ghi chú cập nhật cho đoạn
         if (!empty($result['note'])) {
