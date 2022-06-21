@@ -40,6 +40,7 @@ $theme_config = [
         \'a_class\' => \'\'
     ]
 ];
+
 ';
     $output_data = str_replace($find, $replace, $output_data);
 
@@ -132,13 +133,14 @@ if (preg_match('/function[\s]+nv_mailHTML/is', $output_data)) {
 '
         ));
     }
+}
 
-    nv_get_update_result('base');
-    nvUpdateContructItem('base', 'php');
+nv_get_update_result('base');
+nvUpdateContructItem('base', 'php');
 
-    if (preg_match("/[\r\n\s\t]*\\\$xtpl\-\>parse[\s]*\([\s]*'main'[\s]*\)[\s]*\;[\r\n\s\t]*\\\$sitecontent[\s]*\=[\s]*\\\$xtpl\-\>text[\s]*\([\s]*'main'[\s]*\)[\s]*\;/is", $output_data, $m)) {
-        $find = $m[0];
-        $replace = '
+if (preg_match("/[\r\n\s\t]*\\\$xtpl\-\>parse[\s]*\([\s]*'main'[\s]*\)[\s]*\;[\r\n\s\t]*\\\$sitecontent[\s]*\=[\s]*\\\$xtpl\-\>text[\s]*\([\s]*'main'[\s]*\)[\s]*\;/is", $output_data, $m)) {
+    $find = $m[0];
+    $replace = '
 
     if (defined(\'SSO_REGISTER_DOMAIN\')) {
         $xtpl->assign(\'SSO_REGISTER_ORIGIN\', SSO_REGISTER_DOMAIN);
@@ -152,23 +154,22 @@ if (preg_match('/function[\s]+nv_mailHTML/is', $output_data)) {
 
     $xtpl->parse(\'main\');
     $sitecontent = $xtpl->text(\'main\');';
-        $output_data = str_replace($find, $replace, $output_data);
+    $output_data = str_replace($find, $replace, $output_data);
 
-        nvUpdateSetItemData('base', array(
-            'status' => 1,
-            'find' => $find,
-            'replace' => $replace
-        ));
-    } else {
-        nvUpdateSetItemGuide('base', array(
-            'find' => '    $xtpl->parse(\'main\');
+    nvUpdateSetItemData('base', array(
+        'status' => 1,
+        'find' => $find,
+        'replace' => $replace
+    ));
+} else {
+    nvUpdateSetItemGuide('base', array(
+        'find' => '    $xtpl->parse(\'main\');
     $sitecontent = $xtpl->text(\'main\');',
-            'addbefore' => '    if ($global_config[\'cookie_notice_popup\'] and !isset($_COOKIE[$global_config[\'cookie_prefix\'] . \'_cn\'])) {
+        'addbefore' => '    if ($global_config[\'cookie_notice_popup\'] and !isset($_COOKIE[$global_config[\'cookie_prefix\'] . \'_cn\'])) {
         $xtpl->assign(\'COOKIE_NOTICE\', sprintf($lang_global[\'cookie_notice\'], NV_BASE_SITEURL . \'index.php?\' . NV_LANG_VARIABLE . \'=\' . NV_LANG_DATA . \'&amp;\' . NV_NAME_VARIABLE . \'=siteterms&amp;\' . NV_OP_VARIABLE . \'=privacy\' . $global_config[\'rewrite_exturl\']));
         $xtpl->parse(\'main.cookie_notice\');
     }
 
 '
-        ));
-    }
+    ));
 }

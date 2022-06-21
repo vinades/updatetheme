@@ -33,6 +33,19 @@ if (preg_match("/NVIsMobileMenu[\s]+\=[\s]+false/", $output_data, $m)) {
         'find' => $find,
         'replace' => $replace
     ));
+} elseif (preg_match("/reCapIDs[\s]*\=[\s]*\[[\s]*\][\s]*\;*/is", $output_data, $m)) {
+    $find = $m[0];
+    $replace = 'NVIsMobileMenu = false,
+    gEInterval,
+    siteMenu = $("#menu-site-default"),
+    reCapIDs = [];';
+    $output_data = str_replace($find, $replace, $output_data);
+
+    nvUpdateSetItemData('base', array(
+        'status' => 1,
+        'find' => $find,
+        'replace' => $replace
+    ));
 } else {
     nvUpdateSetItemGuide('base', array(
         'find' => 'NVIsMobileMenu = false,',
@@ -551,7 +564,7 @@ nv_get_update_result('base');
 nvUpdateContructItem('base', 'js');
 
 // Thêm functions: cookie_notice_hide, isRecaptchaCheck, reCaptcha2Recreate, reCaptcha2OnLoad, reCaptcha2Callback, reCaptcha2ApiLoad, reCaptcha3OnLoad, reCaptcha3ApiLoad
-if (preg_match("/function[\s]+add_hint[\s]*\(/is", $output_data, $m)) {
+if (preg_match("/var[\s]+reCaptchaLoadCallback[\s]*\=[\s]*function[\s]*\([\s]*\)[\s]*\{/is", $output_data, $m)) {
     $find = $m[0];
     $replace = '// Hide Cookie Notice Popup
 function cookie_notice_hide() {
@@ -685,7 +698,7 @@ var reCaptcha3ApiLoad = function() {
     }
 }
 
-function add_hint(';
+var reCaptchaLoadCallback = function() {';
     $output_data = str_replace($find, $replace, $output_data);
 
     nvUpdateSetItemData('base', array(
@@ -695,7 +708,7 @@ function add_hint(';
     ));
 } else {
     nvUpdateSetItemGuide('base', array(
-        'find' => 'function add_hint(type, url) {',
+        'find' => 'var reCaptchaLoadCallback = function() {',
         'addbefore' => '// Hide Cookie Notice Popup
 function cookie_notice_hide() {
     nv_setCookie(nv_cookie_prefix + \'_cn\', \'1\', 365);
@@ -876,26 +889,28 @@ if (preg_match("/var[\s]+reCaptchaResCallback(.*?)\}[\r\n\s\t]+\}[\r\n\s\t]+\}[\
     ));
 }
 
-nv_get_update_result('base');
-nvUpdateContructItem('base', 'js');
-
 // Xóa hàm add_hint
-if (preg_match("/function[\s]+add_hint(.*?)document\.getElementsByTagName\(\"head\"\)\[0\]\.appendChild\(el\)[\n\r\s\t]*\}[\n\r\s\t]*/is", $output_data, $m)) {
-    $find = $m[0];
-    $replace = "\n";
-    $output_data = str_replace($find, $replace, $output_data);
+if (preg_match("/function[\s]+add_hint[\s]*\(/is", $output_data)) {
+    nv_get_update_result('base');
+    nvUpdateContructItem('base', 'js');
 
-    nvUpdateSetItemData('base', array(
-        'status' => 1,
-        'find' => $find,
-        'replace' => $replace
-    ));
-} else {
-    nvUpdateSetItemGuide('base', array(
-        'findMessage' => 'Tìm và xóa hàm',
-        'find' => 'add_hint',
-        'replace' => ''
-    ));
+    if (preg_match("/function[\s]+add_hint(.*?)document\.getElementsByTagName\(\"head\"\)\[0\]\.appendChild\(el\)[\n\r\s\t]*\}[\n\r\s\t]*/is", $output_data, $m)) {
+        $find = $m[0];
+        $replace = "\n";
+        $output_data = str_replace($find, $replace, $output_data);
+
+        nvUpdateSetItemData('base', array(
+            'status' => 1,
+            'find' => $find,
+            'replace' => $replace
+        ));
+    } else {
+        nvUpdateSetItemGuide('base', array(
+            'findMessage' => 'Tìm và xóa hàm',
+            'find' => 'add_hint',
+            'replace' => ''
+        ));
+    }
 }
 
 nv_get_update_result('base');

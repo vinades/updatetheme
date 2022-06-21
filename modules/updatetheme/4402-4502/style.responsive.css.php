@@ -21,7 +21,7 @@ nv_get_update_result('base');
 nvUpdateContructItem('base', 'css');
 
 // Thêm cookie_notice
-if (preg_match("/\@media[\s]*\([\s]*max\-width[\s]*\:[\s]*499\.98px[\s]*\)[\s]*\{/is", $output_data, $m)) {
+if (preg_match("/\@media[\s]*\([\s]*max\-width[\s]*\:[\s]*499(\.98)*px[\s]*\)[\s]*\{/is", $output_data, $m)) {
     $find = $m[0];
     $replace = '@media (max-width: 499.98px) {
     .nv-infodie {
@@ -39,7 +39,7 @@ if (preg_match("/\@media[\s]*\([\s]*max\-width[\s]*\:[\s]*499\.98px[\s]*\)[\s]*\
 } else {
     nvUpdateSetItemGuide('base', array(
         'find' => '@media (max-width: 499.98px) {',
-        'addAfter' => '    .nv-infodie {
+        'addafter' => '    .nv-infodie {
         width: 100%;
     }
 
