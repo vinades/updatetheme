@@ -243,7 +243,7 @@ if ($nv_Request->isset_request('save', 'post')) {
 
                 nvUpdateSetItemGuide($n[1], array(
                     'find' => 'Đoạn code xuất captcha',
-                    'replaceMessage' => 'Đọc <a href="https://github.com/nukeviet/update/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-n%C3%A2ng-c%E1%BA%A5p-module-t%E1%BB%AB-NukeViet-4.4.02-l%C3%AAn-NukeViet-4.5.00#4-t%C3%ADch-h%E1%BB%A3p-recaptcha-v3" target="_blank"><strong class="text-info">hướng dẫn này</strong></a> và sửa theo',
+                    'replaceMessage' => 'Đọc <a href="https://github.com/nukeviet/nukeviet/wiki/Ghi-ch%C3%BA-ph%C3%A1t-tri%E1%BB%83n-NukeViet-4.5#c%E1%BA%ADp-nh%E1%BA%ADt-qu%E1%BA%A3n-l%C3%BD-t%E1%BA%ADp-trung-captcha" target="_blank"><strong class="text-info">hướng dẫn này</strong></a> chỗ đoạn Ở function hiển thị captcha (thường ở trong file modules/tên_module/theme.php cần gọi biến toàn cục và sửa theo',
                     'replace' => 'để cập nhật đoạn code xuất captcha đó. Phần này hơi rắc rối, nên đọc kỹ và hiểu vấn đề',
                 ));
             }
