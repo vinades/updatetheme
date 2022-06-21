@@ -223,6 +223,18 @@ if ($nv_Request->isset_request('save', 'post')) {
                     ]);
                 }
             }
+
+            // Bắt gặp captcha => Cập nhật thủ công
+            if (preg_match("/captcha[\s]*\-\-\>/is", $output_data)) {
+                nv_get_update_result($n[1]);
+                nvUpdateContructItem($n[1], 'html');
+
+                nvUpdateSetItemGuide($n[1], [
+                    'find' => 'Những chỗ như đoạn hướng dẫn bên dưới',
+                    'replaceMessage' => 'Xem <a href="https://github.com/nukeviet/update/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-n%C3%A2ng-c%E1%BA%A5p-giao-di%E1%BB%87n-t%E1%BB%AB-NukeViet-4.4.02-l%C3%AAn-NukeViet-4.5.00#t%C3%ADch-h%E1%BB%A3p-recaptcha-v3" target="_blank"><strong class="text-info">hướng dẫn này</strong></a> và sửa theo',
+                    'replace' => 'Để thay đổi tương thích recaptcha. Phần này hơi rắc rối, nên đọc kỹ và hiểu vấn đề',
+                ]);
+            }
         } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/modules\/(.*?)\/theme\.php$/', $file, $n)) {
             // Bắt gặp captcha ở file php
             if (preg_match('/\.recaptcha(\'|")/is', $output_data)) {
