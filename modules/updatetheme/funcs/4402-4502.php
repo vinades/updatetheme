@@ -235,10 +235,28 @@ if ($nv_Request->isset_request('save', 'post')) {
                     'replace' => 'để cập nhật đoạn code xuất captcha đó. Phần này hơi rắc rối, nên đọc kỹ và hiểu vấn đề',
                 ));
             }
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/blocks\/global\.QR_code\.ini$/i', $file, $n)) {
+            nv_get_update_result('base');
+            nvUpdateContructItem('base', 'php');
+
+            nvUpdateSetItemGuide('base', [
+                'find' => 'Xóa file này themes/' . $theme_update . '/blocks/global.QR_code.ini',
+                'replaceMessage' => 'Nguyên nhân không chạy tự động',
+                'replace' => 'Bạn thường copy giao diện cập nhật xong đè qua kho code cũ. Copy đè thì không xóa được nên bạn hãy tự tìm và xóa bằng tay. Chú ý có 2 file cần xóa. 1 file trong thư mục ' . NV_TEMP_DIR . '/theme-update/' . $theme_update . '/blocks và 1 file trong thư mục themes/' . $theme_update . '/blocks của kho code gốc bạn nâng cấp (không phải site đang chạy nâng cấp này)',
+            ]);
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/blocks\/global\.QR_code\.php$/i', $file, $n)) {
+            // global.QR_code.php
+            require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/global.QR_code.php.php';
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/blocks\/global\.QR_code\.tpl$/i', $file, $n)) {
+            // global.QR_code.tpl
+            require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/global.QR_code.tpl.php';
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/config\.ini$/i', $file, $n)) {
+            // config.ini
+            require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/config.ini.php';
         }
 
         if ($contents_file != $output_data) {
-            file_put_contents($file, $output_data, LOCK_EX);
+            //file_put_contents($file, $output_data, LOCK_EX);
         }
     }
 

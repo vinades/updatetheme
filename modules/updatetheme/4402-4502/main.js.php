@@ -995,3 +995,24 @@ if (preg_match("/if[\s]*\([\s]*typeof[\s]*nv_is_recaptcha[\s]*\!\=[\s]*\"undefin
     }'
     ));
 }
+
+nv_get_update_result('base');
+nvUpdateContructItem('base', 'js');
+
+// Xóa js block QR code
+if (preg_match("/[\s]*\+[\s]*(\"|')\&l\=(\"|')[\s]*\+[\s]*\\\$\([\s]*a[\s]*\)\.data\([\s]*(\"|')level(\"|')[\s]*\)(.*?)data[\s]*\([\s]*(\"|')of(\"|')[\s]*\)/is", $output_data, $m)) {
+    $find = $m[0];
+    $replace = '';
+    $output_data = str_replace($find, $replace, $output_data);
+
+    nvUpdateSetItemData('base', array(
+        'status' => 1,
+        'find' => $find,
+        'replace' => $replace
+    ));
+} else {
+    nvUpdateSetItemGuide('base', array(
+        'findMessage' => 'Tìm và xóa trong hàm qrcodeLoad',
+        'find' => ' + "&l=" + $(a).data("level") + "&ppp=" + $(a).data("ppp") + "&of=" + $(a).data("of")',
+    ));
+}
