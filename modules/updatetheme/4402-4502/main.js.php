@@ -508,7 +508,7 @@ nv_get_update_result('base');
 nvUpdateContructItem('base', 'js');
 
 // Thay hàm loginForm
-if (preg_match("/function[\s]+loginForm(.*?)\)(\;)*[\r\n\s\t]+return[^\}]+\}/is", $output_data, $m)) {
+if (preg_match("/function[\s]+loginForm(.*?)return[\s]*\!1\;*[\r\n\s\t]+if[\s]*\((.*?)\)(\;)*[\r\n\s\t]+return[^\}]+\}/is", $output_data, $m)) {
     $find = $m[0];
     $replace = 'function loginForm(redirect) {
     if (nv_is_user == 1) {
