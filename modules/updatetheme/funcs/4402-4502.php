@@ -181,6 +181,11 @@ if ($nv_Request->isset_request('save', 'post')) {
             // header_only.tpl
             require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/header_only.tpl.php';
         } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/modules\/(.*?)\/(.*?)\.tpl$/', $file, $n)) {
+            if ($n[1] == 'news') {
+                // Cập nhật tpl module news
+                require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/news-tpl.php';
+            }
+
             // Thay NV_BASE_SITEURL thành NV_STATIC_URL
             unset($m);
             $pattern = '/\{NV_BASE_SITEURL\}(\{NV_EDITORSDIR\}|themes)\/(.*?)\.([a-zA-Z0-9]+)/s';
@@ -225,7 +230,7 @@ if ($nv_Request->isset_request('save', 'post')) {
             }
 
             // Bắt gặp captcha => Cập nhật thủ công
-            if (preg_match("/captcha[\s]*\-\-\>/is", $output_data)) {
+            if (preg_match("/captcha[\s]*\-\-\>/is", $output_data) and !($n[1] == 'news' and preg_match('/\/(content|sendmail)\.tpl$/', $file))) {
                 nv_get_update_result($n[1]);
                 nvUpdateContructItem($n[1], 'html');
 
@@ -236,8 +241,12 @@ if ($nv_Request->isset_request('save', 'post')) {
                 ]);
             }
         } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/modules\/(.*?)\/theme\.php$/', $file, $n)) {
+            if ($n[1] == 'news') {
+                // news theme.php
+                require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/news-theme.php.php';
+            }
             // Bắt gặp captcha ở file php
-            if (preg_match('/\.recaptcha(\'|")/is', $output_data)) {
+            if (preg_match('/\.recaptcha(\'|")/is', $output_data) and $n[1] != 'news') {
                 nv_get_update_result($n[1]);
                 nvUpdateContructItem($n[1], 'php');
 
@@ -265,6 +274,9 @@ if ($nv_Request->isset_request('save', 'post')) {
         } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/config\.ini$/i', $file, $n)) {
             // config.ini
             require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/config.ini.php';
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/js\/news\.js$/i', $file, $n)) {
+            // news.js
+            require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/news.js.php';
         }
 
         if ($contents_file != $output_data) {
