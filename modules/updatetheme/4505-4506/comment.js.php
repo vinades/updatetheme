@@ -14,28 +14,107 @@ if (!defined('NV_IS_MOD_UPDATETHEME')) {
 }
 
 /**
- * Cập nhật users.js
+ * Cập nhật comment.js
  */
 
-nv_get_update_result('users');
-nvUpdateContructItem('users', 'js');
+nv_get_update_result('comment');
+nvUpdateContructItem('comment', 'js');
 
-if (preg_match("/\/\/[\s]*Xử[\s]*lý[\s]*các[\s]*trình[\s]*soạn[\s]*thảo(.*?)CKEDITOR\.instances\[c\]\.getData\(\)\)[\s]*\;*/isu", $output_data, $m)) {
+if (preg_match("/CKEDITOR\.instances\[(\'|\")commentcontent(\'|\")\]\.setData\(([^\{]+)\{(.*?)\}[\s]*\)/is", $output_data, $m)) {
     $find = $m[0];
-    $replace = '';
+    $replace = 'window.nveditor[\'commentcontent\'].setData(\'\');
+        $(\'#commentcontent\').val(\'\');';
     $output_data = str_replace($find, $replace, $output_data);
 
-    nvUpdateSetItemData('users', [
+    nvUpdateSetItemData('comment', [
         'status' => 1,
         'find' => $find,
         'replace' => $replace
     ]);
 } else {
-    nvUpdateSetItemGuide('users', [
-        'find' => '    // Xử lý các trình soạn thảo
-    if ("undefined" != typeof CKEDITOR)
-        for (var c in CKEDITOR.instances) $("#" + c).val(CKEDITOR.instances[c].getData());
-',
-        'findMessage' => 'Tìm và xóa đoạn'
+    nvUpdateSetItemGuide('comment', [
+        'find' => '        CKEDITOR.instances[\'commentcontent\'].setData(\'\', function() {
+            this.updateElement()
+        })',
+        'replace' => '        window.nveditor[\'commentcontent\'].setData(\'\');
+        $(\'#commentcontent\').val(\'\');'
+    ]);
+}
+
+nv_get_update_result('comment');
+nvUpdateContructItem('comment', 'js');
+
+if (preg_match("/CKEDITOR\.instances\[(\'|\")commentcontent(\'|\")\]\.insertText([^\)]+)\)[ \t]*\;*/is", $output_data, $m)) {
+    $find = $m[0];
+    $replace = 'window.nveditor[\'commentcontent\'].model.change(() => {
+                window.nveditor[\'commentcontent\'].model.insertContent(window.nveditor[\'commentcontent\'].data.toModel(window.nveditor[\'commentcontent\'].data.processor.toView("@" + post_name + "&nbsp;")), window.nveditor[\'commentcontent\'].model.document.selection);
+            });
+            window.nveditor[\'commentcontent\'].editing.view.focus();';
+    $output_data = str_replace($find, $replace, $output_data);
+
+    nvUpdateSetItemData('comment', [
+        'status' => 1,
+        'find' => $find,
+        'replace' => $replace
+    ]);
+} else {
+    nvUpdateSetItemGuide('comment', [
+        'find' => '            CKEDITOR.instances[\'commentcontent\'].insertText("@" + post_name + " ");',
+        'replace' => '            window.nveditor[\'commentcontent\'].model.change(() => {
+                window.nveditor[\'commentcontent\'].model.insertContent(window.nveditor[\'commentcontent\'].data.toModel(window.nveditor[\'commentcontent\'].data.processor.toView("@" + post_name + "&nbsp;")), window.nveditor[\'commentcontent\'].model.document.selection);
+            });
+            window.nveditor[\'commentcontent\'].editing.view.focus();'
+    ]);
+}
+
+nv_get_update_result('comment');
+nvUpdateContructItem('comment', 'js');
+
+if (preg_match("/CKEDITOR\.instances\[(\'|\")commentcontent(\'|\")\]\.updateElement\([\s]*\)[ \t]*\;*/is", $output_data, $m)) {
+    $find = $m[0];
+    $replace = '$(\'#commentcontent\').val(window.nveditor[\'commentcontent\'].getData());';
+    $output_data = str_replace($find, $replace, $output_data);
+
+    nvUpdateSetItemData('comment', [
+        'status' => 1,
+        'find' => $find,
+        'replace' => $replace
+    ]);
+} else {
+    nvUpdateSetItemGuide('comment', [
+        'find' => 'CKEDITOR.instances[\'commentcontent\'].updateElement()',
+        'replace' => '$(\'#commentcontent\').val(window.nveditor[\'commentcontent\'].getData());'
+    ]);
+}
+
+nv_get_update_result('comment');
+nvUpdateContructItem('comment', 'js');
+
+if (preg_match("/CKEDITOR\.instances\[(\'|\")commentcontent(\'|\")\]\.on\([\s]*(\'|\")key(\'|\")(.*?)\}[\s]*\)[ \t]*\;*/is", $output_data, $m)) {
+    $find = $m[0];
+    $replace = 'window.nveditor["commentcontent"].editing.view.document.on(\'keydown\', (event, data) => {
+                if (data.ctrlKey && data.keyCode == 13) {
+                    commentform.submit();
+                }
+            });';
+    $output_data = str_replace($find, $replace, $output_data);
+
+    nvUpdateSetItemData('comment', [
+        'status' => 1,
+        'find' => $find,
+        'replace' => $replace
+    ]);
+} else {
+    nvUpdateSetItemGuide('comment', [
+        'find' => '            CKEDITOR.instances[\'commentcontent\'].on(\'key\', function(event) {
+                if (event.data.keyCode === 1114125) {
+                    commentform.submit()
+                }
+            });',
+        'replace' => '            window.nveditor["commentcontent"].editing.view.document.on(\'keydown\', (event, data) => {
+                if (data.ctrlKey && data.keyCode == 13) {
+                    commentform.submit();
+                }
+            });'
     ]);
 }
