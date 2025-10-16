@@ -14,12 +14,12 @@ if (!defined('NV_MAINFILE')) {
 
 $module_version = [
     'name' => 'Update Theme',
-    'modfuncs' => '4505-4506,4502-4503,main,4029-4100,4029-4102,4029-4201,4201-4300,4402-4502',
-    'submenu' => '4505-4506,4502-4503,main,4029-4100,4029-4102,4029-4201,4201-4300,4402-4502',
+    'modfuncs' => '4506-4507,4505-4506,4502-4503,main,4029-4100,4029-4102,4029-4201,4201-4300,4402-4502',
+    'submenu' => '4506-4507,4505-4506,4502-4503,main,4029-4100,4029-4102,4029-4201,4201-4300,4402-4502',
     'is_sysmod' => 0,
     'virtual' => 0,
-    'version' => '4.5.06',
-    'date' => 'Monday, July 15, 2024 11:48:52 AM GMT+07:00',
+    'version' => '4.5.07',
+    'date' => 'Thursday, October 16, 2025 9:12:58 AM GMT+07:00',
     'author' => 'VINADES <contact@vinades.vn>',
     'uploads_dir' => [$module_name],
     'note' => ''
