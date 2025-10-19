@@ -103,6 +103,11 @@ if ($nv_Request->isset_request('save', 'post')) {
                 // Cập nhật tpl module comment
                 require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/comment-tpl.php';
             }
+        } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/modules\/(.*?)\/theme\.php$/', $file, $n)) {
+            if ($n[1] == 'news') {
+                // news theme.php
+                require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/news-theme.php.php';
+            }
         } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/js\/comment\.js$/i', $file, $n)) {
             // comment.js
             require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/comment.js.php';
