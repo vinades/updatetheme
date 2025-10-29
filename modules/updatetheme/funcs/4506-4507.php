@@ -102,6 +102,9 @@ if ($nv_Request->isset_request('save', 'post')) {
             if ($n[1] == 'comment') {
                 // Cập nhật tpl module comment
                 require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/comment-tpl.php';
+            } elseif ($n[1] == 'users') {
+                // Cập nhật tpl module users
+                require NV_ROOTDIR . '/modules/' . $module_file . '/' . $op . '/users-tpl.php';
             }
         } elseif (preg_match('/' . nv_preg_quote($theme_update) . '\/modules\/(.*?)\/theme\.php$/', $file, $n)) {
             if ($n[1] == 'news') {
