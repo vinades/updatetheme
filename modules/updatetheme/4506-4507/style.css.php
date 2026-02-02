@@ -82,7 +82,11 @@ nvUpdateContructItem('base', 'css');
 
 if (preg_match('/figure[\s]*\{[^\}]+text\-align[\s]*\:[\s]*center[^\}]+\}/is', $output_data, $m)) {
     $find = $m[0];
-    $replace = str_replace('figure', 'figure:not(.table):not(.media):not(.nv-media)', $find);
+    $replace = "figure:not(.table):not(.media):not(.nv-media) {
+    position: relative;
+    margin: 5px auto 10px auto;
+    text-align: center;
+}";
 
     $output_data = str_replace($find, $replace, $output_data);
 
@@ -94,8 +98,58 @@ if (preg_match('/figure[\s]*\{[^\}]+text\-align[\s]*\:[\s]*center[^\}]+\}/is', $
 } else {
     nvUpdateSetItemGuide('base', [
         'find' => 'figure { .... }',
-        'replaceMessage' => 'Nếu bên trong dấu ... có text-align: center; thì sửa figure { thành',
-        'replace' => 'figure:not(.table):not(.media):not(.nv-media) {'
+        'replaceMessage' => 'Nếu bên trong dấu ... có text-align: center; thì sửa thành',
+        'replace' => 'figure:not(.table):not(.media):not(.nv-media) {
+    position: relative;
+    margin: 5px auto 10px auto;
+    text-align: center;
+}'
+    ]);
+}
+
+// Cập nhật config cho ckeditor5 với ckeditor4
+nv_get_update_result('base');
+nvUpdateContructItem('base', 'css');
+
+if (preg_match('/\.image\-style\-block\-align\-right[\s]*\{[^\}]+\}[\r\n\s\t]*\.image\-style\-block\-align\-left[\s]*\{[^\}]+\}/is', $output_data, $m)) {
+    $find = $m[0];
+    $replace = ".image-style-block-align-right {
+    margin-right: 0 !important;
+    margin-left: auto !important;
+}
+
+.image-style-block-align-left {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}";
+
+    $output_data = str_replace($find, $replace, $output_data);
+
+    nvUpdateSetItemData('base', [
+        'status' => 1,
+        'find' => $find,
+        'replace' => $replace
+    ]);
+} else {
+    nvUpdateSetItemGuide('base', [
+        'find' => '.image-style-block-align-right {
+    margin-right: 0;
+    margin-left: auto;
+}
+
+.image-style-block-align-left {
+    margin-left: 0;
+    margin-right: auto;
+}',
+        'replace' => '.image-style-block-align-right {
+    margin-right: 0 !important;
+    margin-left: auto !important;
+}
+
+.image-style-block-align-left {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}'
     ]);
 }
 
